@@ -1,0 +1,84 @@
+***** Kernel compatibility *****
+
+To use HPMMAP, you must have the Linux Hot Add/Remove features enabled in your
+kernel
+
+
+***** Building HPMMAP *****
+
+(1) cd <hpmmap dir>/mod;
+(2) Set LINUX_KERN to the appropriate path in the Makefile
+(3) make
+
+
+***** Installing HPMMAP *****
+(1) cd <hpmmap dir>/mod;
+(2) ./reload_mod.sh (requires root)
+
+
+***** Allocating memory to HPMMAP *****
+(1) cd <hpmmap dir>/utils;
+(2) make;
+(3) Use the mem_ctrl utility to offline/online memory for HPMMAP use. (requires root)
+
+
+NOTE: Each time you add memory to / remove memory from HPMMAP, you are adding /
+removing a single memory pool. Memory pools are variable in size, and are added
+/ removed with the mem_ctrl utility.
+
+The consistent way to manage memory pools is to use the -A and -R options to
+mem_ctrl. For example, if you want to add a memory pool of 1GB (2^30 bytes)
+to HPMMAP, you issue the command:
+
+./mem_ctrl -A 30 [-n <numa node>]
+
+Then, to remove the memory from HPMMAP and give it back to Linux, you run:
+
+./mem_ctrl -R 30 [-n <numa node>]
+
+
+The mem_ctrl command also accepts -a and -r options to add/remove individual
+memory blocks. These modes are not recommended because the block size can be
+system dependent, but on many systems they will be 128MB (order 27). This means
+that the following two commands are equivalent in these systems:
+
+./mem_ctrl -A 27 -n 0
+./mem_ctrl -a 1 -n 0
+
+as well as
+
+./mem_ctrl -R 27 -n 0
+./mem_ctrl -r 1 -n 0
+
+Also note that the page sizes supported by HPMMAP are limited by the maximum
+pool size that you have allocated. For example, if the largest pool size you've
+allocated is less than order 30, you will not be able to use 1GB pages
+regardless of whether 1GB page support has been compiled in the kernel module.
+
+Finally, use the -s option to see the status of all memory blocks on the system.
+Blocks listed as OFFLINE are available for HPMMAP use, while blocks listed as
+ONLINE can be removed but are currently under Linux control.
+
+
+***** Monitoring HPMMAP memory pools *****
+The files /proc/hpmmap/zone{0,...,n} are provided to give information about the
+status of HPMMAP memory pools. There is one file for each NUMA node on your
+system.
+
+
+***** Running applications *****
+Use the utils/launcher utility to launch applications on HPMMAP.
+
+For example:
+<hpmmap dir>/utils/launcher ls
+
+The permissions you set on /dev/hpmmap determine the permissions needed to run
+applications on HPMMAP
+
+
+***** Other info *****
+
+The file mod/hpmmap.h has a couple of compile time features that may be selected
+to modify the behavior of HPMMAP.
+
+Send email to Brian Kocoloski (briankoco@cs.pitt.edu) with comments / questions / bug reports.
