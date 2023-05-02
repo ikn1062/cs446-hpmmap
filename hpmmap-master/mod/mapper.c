@@ -25,11 +25,11 @@ set_page_flags(pte64_t * pt,
         pt->no_execute    = 1;
     }
 
-    if (prot & _PAGE_CACHE_UC_MINUS) {
+    if (prot & _PAGE_CACHE_MODE_UC_MINUS) {
         pt->cache_disable = 1;
     }
 
-    if (prot & _PAGE_CACHE_WC) {
+    if (prot & _PAGE_CACHE_MODE_WC) {
         pt->write_through = 1;
     }
 }

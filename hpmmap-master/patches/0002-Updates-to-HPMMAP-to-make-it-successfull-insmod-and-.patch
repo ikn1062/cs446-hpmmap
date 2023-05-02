@@ -1,0 +1,226 @@
+From ae20f354aba4acab6f8bd4b836005cc56034ebc6 Mon Sep 17 00:00:00 2001
+From: Peter Dinda <pdinda@northwestern.edu>
+Date: Sun, 19 May 2019 17:08:28 -0500
+Subject: [PATCH 2/5] Updates to HPMMAP to make it successfull insmod and
+ startup on Ubuntu 16
+
+---
+ kernel/hpmmap/mod/main.c        | 50 ++++++++++++++++++++++++++++++---
+ kernel/hpmmap/mod/probe.c       | 31 ++++++++++++--------
+ kernel/hpmmap/mod/reload_mod.sh |  7 +++--
+ 3 files changed, 69 insertions(+), 19 deletions(-)
+
+diff --git a/kernel/hpmmap/mod/main.c b/kernel/hpmmap/mod/main.c
+index 429a538..f0d8a82 100644
+--- a/kernel/hpmmap/mod/main.c
++++ b/kernel/hpmmap/mod/main.c
+@@ -290,45 +290,78 @@ ctrl_fops =
+ };
+     
+ 
+-static int __init 
++void *__hpmmap_current_kprobe=0;
++
++static char *cur_kprobe = 0;
++module_param(cur_kprobe, charp, 0);
++MODULE_PARM_DESC(cur_kprobe,"Address of current_kprobe (required)");
++
++int __init 
+ hpmmap_init(void)
+ {
+     dev_t dev = MKDEV(0, 0);
+     int ret   = 0;
++
+     
+     printk("-------------------------------------\n");
+     printk("-------------------------------------\n");
+     printk("Initializing HPMMAP memory management\n");
+     printk("-------------------------------------\n");
+     printk("-------------------------------------\n");
++    if (!cur_kprobe) {
++	printk("ERROR:  the cur_kprobe parameter is required\n");
++	return -1;
++    }
++
++    kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
++
++    printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n",cur_kprobe, (void*)__hpmmap_current_kprobe);
+ 
+     if (hpmmap_linux_symbol_init() == -1) {
+         return -1;
+     }
++
++    printk("symbol init done\n");
+     
+     if (hook_mmap_syscalls() == -1) {
+         ret = -1;
+         goto err;
+     }
+ 
++    printk("hook mmap syscalls done\n");
++
+     if (init_hpmmap_probes() == -1) {
+         ret = -1;
+         goto err;
+     }
+ 
++    printk("init probes done\n");
++
+     {
+         int num_nodes = numa_num_nodes();
+         int node_id   = 0;
+-        
+-        memzones = kmalloc(GFP_KERNEL, sizeof(struct buddy_memzone *) * num_nodes);
++
++	printk("setting up for %d numa nodes\n", num_nodes);
++	
++        memzones = kmalloc(sizeof(struct buddy_memzone *) * num_nodes, GFP_KERNEL);
++	printk("allocated\n");
++	
+         memset(memzones, 0, sizeof(struct buddy_memzone *) * num_nodes);
+ 
++	printk("zeroed\n");
++	
+         hpmmap_proc_dir = proc_mkdir(PROC_DIR, NULL);
+ 
++	printk("proc dir configured\n");
++
+         for (node_id = 0; node_id < num_nodes; node_id++) {
+             struct buddy_memzone * zone = NULL;
+-            
++
++	    printk("start buddy init on node %d\n",node_id);
++	    
+             zone = buddy_init(get_order(0x40000000) + PAGE_SHIFT, PAGE_SHIFT, node_id, hpmmap_proc_dir);
++	    
++	    printk("done buddy init on node %d\n",node_id);
+ 
+             if (zone == NULL) {
+                 PrintError("Could not initialization memory management for node %d\n", node_id);
+@@ -365,6 +398,12 @@ hpmmap_init(void)
+ 
+     device_create(hpmmap_class, NULL, dev, NULL, DEV_FILENAME);
+ 
++    printk("device file interface configured\n");
++
++    printk("initialization complete\n");
++
++    printk("-------------------------------------\n");
++    
+     return 0;
+ 
+ err:
+@@ -376,6 +415,7 @@ err:
+ }
+ 
+ 
++
+ static void __exit
+ hpmmap_exit(void ) 
+ {
+@@ -411,3 +451,5 @@ hpmmap_exit(void )
+ 
+ module_init(hpmmap_init);
+ module_exit(hpmmap_exit);
++
++
+diff --git a/kernel/hpmmap/mod/probe.c b/kernel/hpmmap/mod/probe.c
+index 4271c0c..dd46caf 100644
+--- a/kernel/hpmmap/mod/probe.c
++++ b/kernel/hpmmap/mod/probe.c
+@@ -4,6 +4,7 @@
+ #include <linux/kallsyms.h>
+ #include <linux/kprobes.h>
+ #include <linux/mm.h>
++#include <linux/preempt.h>
+ 
+ #include "hpmmap.h"
+ #include "probe.h"
+@@ -28,7 +29,21 @@ struct hpmmap_probe_data {
+ };
+ 
+ 
++// do our own resets to avoid access of kernel symbol current_krobe
++static void
++hpmmap_reset_current_kprobe(void)
++{
++    extern void *__hpmmap_current_kprobe;
++    
++    __this_cpu_write(__hpmmap_current_kprobe, NULL);
++}
++
++
++//#define PREEMPT_ON()  preempt_enable_no_resched()
++#define PREEMPT_ON()  //  barrier()  // presumably needed even on nopreempt kernel...
++#define RESET_CURRENT_KPROBE() hpmmap_reset_current_kprobe(); PREEMPT_ON();
+ 
++//#define RESET_CURRENT_KPROBE() reset_current_kprobe()
+ 
+ 
+ /* 
+@@ -145,9 +160,7 @@ hpmmap_get_user_pages_probe(struct kprobe  * kp,
+         /* We found the region - blow away the original function call */
+         regs->ip = (unsigned long)&hpmmap_get_user_pages_fn;
+ 
+-        //hpmmap_reset_current_kprobe();
+-        reset_current_kprobe();
+-        //preempt_enable_no_resched();
++        RESET_CURRENT_KPROBE();
+ 
+         return 1;
+     }
+@@ -174,9 +187,7 @@ __hpmmap_get_user_pages_probe(struct kprobe  * kp,
+         /* We found the region - blow away the original function call */
+         regs->ip = (unsigned long)&__hpmmap_get_user_pages_fn;
+ 
+-        //hpmmap_reset_current_kprobe();
+-        reset_current_kprobe();
+-        //preempt_enable_no_resched();
++        RESET_CURRENT_KPROBE();
+ 
+         return 1;
+     }
+@@ -198,9 +209,7 @@ hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
+         /* We found the region - blow away the original function call */
+         regs->ip = (unsigned long)&hpmmap_get_user_pages_fast_fn;
+ 
+-        //hpmmap_reset_current_kprobe();
+-        reset_current_kprobe();
+-        //preempt_enable_no_resched();
++        RESET_CURRENT_KPROBE();
+ 
+         return 1;
+     }
+@@ -222,9 +231,7 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
+         /* We found the region - blow away the original function call */
+         regs->ip = (unsigned long)&__hpmmap_get_user_pages_fast_fn;
+ 
+-        //hpmmap_reset_current_kprobe();
+-        reset_current_kprobe();
+-        //preempt_enable_no_resched();
++        RESET_CURRENT_KPROBE();
+ 
+         return 1;
+     }
+diff --git a/kernel/hpmmap/mod/reload_mod.sh b/kernel/hpmmap/mod/reload_mod.sh
+index 741d861..5a2b5d1 100755
+--- a/kernel/hpmmap/mod/reload_mod.sh
++++ b/kernel/hpmmap/mod/reload_mod.sh
+@@ -9,10 +9,11 @@ if [ $(lsmod | grep hpmmap | wc -l) -eq 1 ]; then
+ fi
+ 
+ # Load module - lookup addr of syscall table
+-insmod hpmmap.ko syscall_table_addr=0x$(grep -i "r sys_call_table" /proc/kallsyms | sed 's/\([0-9a-f]*\) [rR] sys_call_table/\1/')
++insmod hpmmap.ko syscall_table_addr=0x$(grep -i "r sys_call_table" /proc/kallsyms | sed 's/\([0-9a-f]*\) [rR] sys_call_table/\1/') cur_kprobe=0x$(grep current_kprobe /proc/kallsyms | cut -d " " -f 1 -z)
++
+ 
+ 
+ # Optionally, set hpmmap permissions to avoid running applications as root
+ sleep 2
+-chgrp briankoco /dev/hpmmap 
+-chmod 664 /dev/hpmmap
++chgrp pdinda /dev/hpmmap 
++chmod 666 /dev/hpmmap
+-- 
+2.17.1
+

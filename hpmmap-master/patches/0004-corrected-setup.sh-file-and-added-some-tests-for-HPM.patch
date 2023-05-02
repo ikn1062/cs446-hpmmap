@@ -1,0 +1,103 @@
+From d486e04251f1844509ffc85393120c6cd17182d8 Mon Sep 17 00:00:00 2001
+From: Jin Han <jinhan2019@u.northwestern.edu>
+Date: Thu, 20 Jun 2019 12:26:55 -0500
+Subject: [PATCH 4/5] corrected setup.sh file and added some tests for HPMMAP
+
+---
+ kernel/hpmmap/mod/mmap.c   |  2 +-
+ kernel/hpmmap/mod/setup.sh | 16 +++++++++++++
+ kernel/hpmmap/utils/test.c | 46 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 63 insertions(+), 1 deletion(-)
+ create mode 100755 kernel/hpmmap/mod/setup.sh
+ create mode 100644 kernel/hpmmap/utils/test.c
+
+diff --git a/kernel/hpmmap/mod/mmap.c b/kernel/hpmmap/mod/mmap.c
+index f5bdd67..7f0bfae 100644
+--- a/kernel/hpmmap/mod/mmap.c
++++ b/kernel/hpmmap/mod/mmap.c
+@@ -1428,7 +1428,7 @@ unmap_process(u32 pid)
+ 
+     /* Alright, all threads have exited, so we unmap memory */
+     do_unmap_process(state);
+-
++    printk("Unmap memory");
+     printk("PID %d deregistered\n", state->pid);
+ 
+     kfree(state);
+diff --git a/kernel/hpmmap/mod/setup.sh b/kernel/hpmmap/mod/setup.sh
+new file mode 100755
+index 0000000..00ad051
+--- /dev/null
++++ b/kernel/hpmmap/mod/setup.sh
+@@ -0,0 +1,16 @@
++#! /bin/sh
++
++# load module
++./reload_mod.sh
++dmesg -c &> /dev/null
++
++# check mem status
++../utils/mem_ctrl -s
++
++# allocate some memory to hpmmap
++../utils/mem_ctrl -a 4 -n 0
++
++# set enviroment variable
++cd ../utils
++export OMPI_COMM_WORLD_LOCAL_RANK=0
++
+diff --git a/kernel/hpmmap/utils/test.c b/kernel/hpmmap/utils/test.c
+new file mode 100644
+index 0000000..0d545a3
+--- /dev/null
++++ b/kernel/hpmmap/utils/test.c
+@@ -0,0 +1,46 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <time.h>
++
++struct test {
++  int field1;
++  char field2[30];
++};
++
++
++int main() {
++
++  printf("Got to main\n");
++  // time count starts
++  double total_time;
++  clock_t start, end;
++  start = clock();
++
++  // some malloc 
++  char* str;
++  str = (char *) malloc(5000);
++  strcpy(str, "HPMMAP TEST");
++  str = (char *) realloc(str, 10000);
++  strcat(str, "Memory Allocation");
++  free(str);
++
++  // more malloc
++  struct test *test_ptr;
++  test_ptr = (struct test*) malloc (2000 * sizeof(struct test));
++
++  for(int i = 0; i <2000; ++i) {
++     (test_ptr+i)->field1 = i;
++     strcpy((test_ptr+i)->field2, "HPMMAP TEST");
++  }
++  free(test_ptr);
++
++  //time count stops 
++  end = clock();
++  total_time = ((double) (end - start)) / CLOCKS_PER_SEC;
++  //calulate total time
++  printf("\nTime taken: %f\n", total_time);
++
++  return;
++
++}
+-- 
+2.17.1
+

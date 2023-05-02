@@ -1,0 +1,45 @@
+From c19b01977c3768f4bd1f73499e0e2cf64978e035 Mon Sep 17 00:00:00 2001
+From: Peter Dinda <pdinda@northwestern.edu>
+Date: Sun, 7 Apr 2019 15:57:51 -0500
+Subject: [PATCH 1/5] Get hpmmap sucessfuly compiling on 4.x kernel (minor
+ changes)
+
+---
+ kernel/hpmmap/mod/mapper.c | 4 ++--
+ kernel/hpmmap/mod/mmap.c   | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/kernel/hpmmap/mod/mapper.c b/kernel/hpmmap/mod/mapper.c
+index b86dbae..f31bede 100644
+--- a/kernel/hpmmap/mod/mapper.c
++++ b/kernel/hpmmap/mod/mapper.c
+@@ -25,11 +25,11 @@ set_page_flags(pte64_t * pt,
+         pt->no_execute    = 1;
+     }
+ 
+-    if (prot & _PAGE_CACHE_UC_MINUS) {
++    if (prot & _PAGE_CACHE_MODE_UC_MINUS) {
+         pt->cache_disable = 1;
+     }
+ 
+-    if (prot & _PAGE_CACHE_WC) {
++    if (prot & _PAGE_CACHE_MODE_WC) {
+         pt->write_through = 1;
+     }
+ }
+diff --git a/kernel/hpmmap/mod/mmap.c b/kernel/hpmmap/mod/mmap.c
+index 144abaa..ece73df 100644
+--- a/kernel/hpmmap/mod/mmap.c
++++ b/kernel/hpmmap/mod/mmap.c
+@@ -1333,7 +1333,7 @@ hpmmap_get_user_pages(u32                      pid,
+ #else
+             tlb_gather_mmu(&tlb, current->mm, addr, addr + (i * PAGE_SIZE));
+ #endif
+-            tlb.need_flush = 1;
++            tlb.need_flush_all = 1;
+             tlb_finish_mmu(&tlb, addr, addr + (i * PAGE_SIZE));
+ 
+             return i;
+-- 
+2.17.1
+

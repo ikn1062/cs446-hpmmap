@@ -65,7 +65,10 @@ struct hashtable;
 
 
 /* These cannot be inlined because they are referenced as fn ptrs */
-u32 hash_long(uintptr_t val);
+
+/* changed function name hash_long to util_hash_long
+   since linus already has hash_long defined */
+u32 util_hash_long(uintptr_t val);
 u32 hash_buffer(u8 * msg, u32 length);
 
 

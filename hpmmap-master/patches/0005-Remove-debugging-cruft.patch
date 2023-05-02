@@ -1,0 +1,108 @@
+From f7315f8f85db8c8feb4c41f4fab3e83ff80dcd10 Mon Sep 17 00:00:00 2001
+From: Peter Dinda <pdinda@northwestern.edu>
+Date: Sun, 1 Sep 2019 15:06:09 -0500
+Subject: [PATCH 5/5] Remove debugging cruft
+
+---
+ kernel/hpmmap/mod/main.c | 28 +++-------------------------
+ kernel/hpmmap/mod/mmap.c |  2 +-
+ 2 files changed, 4 insertions(+), 26 deletions(-)
+
+diff --git a/kernel/hpmmap/mod/main.c b/kernel/hpmmap/mod/main.c
+index f0d8a82..e726925 100644
+--- a/kernel/hpmmap/mod/main.c
++++ b/kernel/hpmmap/mod/main.c
+@@ -308,6 +308,7 @@ hpmmap_init(void)
+     printk("Initializing HPMMAP memory management\n");
+     printk("-------------------------------------\n");
+     printk("-------------------------------------\n");
++    
+     if (!cur_kprobe) {
+ 	printk("ERROR:  the cur_kprobe parameter is required\n");
+ 	return -1;
+@@ -315,54 +316,35 @@ hpmmap_init(void)
+ 
+     kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
+ 
+-    printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n",cur_kprobe, (void*)__hpmmap_current_kprobe);
+-
+     if (hpmmap_linux_symbol_init() == -1) {
+         return -1;
+     }
+ 
+-    printk("symbol init done\n");
+-    
+     if (hook_mmap_syscalls() == -1) {
+         ret = -1;
+         goto err;
+     }
+ 
+-    printk("hook mmap syscalls done\n");
+-
+     if (init_hpmmap_probes() == -1) {
+         ret = -1;
+         goto err;
+     }
+ 
+-    printk("init probes done\n");
+-
+     {
+         int num_nodes = numa_num_nodes();
+         int node_id   = 0;
+ 
+-	printk("setting up for %d numa nodes\n", num_nodes);
+-	
+         memzones = kmalloc(sizeof(struct buddy_memzone *) * num_nodes, GFP_KERNEL);
+-	printk("allocated\n");
+-	
++
+         memset(memzones, 0, sizeof(struct buddy_memzone *) * num_nodes);
+ 
+-	printk("zeroed\n");
+-	
+         hpmmap_proc_dir = proc_mkdir(PROC_DIR, NULL);
+ 
+-	printk("proc dir configured\n");
+-
+         for (node_id = 0; node_id < num_nodes; node_id++) {
+             struct buddy_memzone * zone = NULL;
+ 
+-	    printk("start buddy init on node %d\n",node_id);
+-	    
+             zone = buddy_init(get_order(0x40000000) + PAGE_SHIFT, PAGE_SHIFT, node_id, hpmmap_proc_dir);
+ 	    
+-	    printk("done buddy init on node %d\n",node_id);
+-
+             if (zone == NULL) {
+                 PrintError("Could not initialization memory management for node %d\n", node_id);
+                 return -1;
+@@ -398,12 +380,8 @@ hpmmap_init(void)
+ 
+     device_create(hpmmap_class, NULL, dev, NULL, DEV_FILENAME);
+ 
+-    printk("device file interface configured\n");
++    printk("HPMMAP initialization complete\n");
+ 
+-    printk("initialization complete\n");
+-
+-    printk("-------------------------------------\n");
+-    
+     return 0;
+ 
+ err:
+diff --git a/kernel/hpmmap/mod/mmap.c b/kernel/hpmmap/mod/mmap.c
+index 7f0bfae..6cb5348 100644
+--- a/kernel/hpmmap/mod/mmap.c
++++ b/kernel/hpmmap/mod/mmap.c
+@@ -1428,7 +1428,7 @@ unmap_process(u32 pid)
+ 
+     /* Alright, all threads have exited, so we unmap memory */
+     do_unmap_process(state);
+-    printk("Unmap memory");
++    
+     printk("PID %d deregistered\n", state->pid);
+ 
+     kfree(state);
+-- 
+2.17.1
+

@@ -84,7 +84,7 @@ static inline u32 do_hash(struct hashtable * htable, uintptr_t key) {
 #define GOLDEN_RATIO_PRIME 0x9e370001UL
 #endif
 
-u32 hash_long(uintptr_t val) {
+u32 util_hash_long(uintptr_t val) {
     uintptr_t hash = val;
 
 #ifdef __64BIT__

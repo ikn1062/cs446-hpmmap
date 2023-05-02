@@ -332,7 +332,7 @@ find_memory_state(u32 pid)
 static u32 
 mem_hash_fn(uintptr_t key)
 {
-    return hash_long(key);
+    return util_hash_long(key);
 }
 
 static int 
@@ -1333,7 +1333,7 @@ hpmmap_get_user_pages(u32                      pid,
 #else
             tlb_gather_mmu(&tlb, current->mm, addr, addr + (i * PAGE_SIZE));
 #endif
-            tlb.need_flush = 1;
+            tlb.need_flush_all = 1;
             tlb_finish_mmu(&tlb, addr, addr + (i * PAGE_SIZE));
 
             return i;
@@ -1428,7 +1428,8 @@ unmap_process(u32 pid)
 
     /* Alright, all threads have exited, so we unmap memory */
     do_unmap_process(state);
-
+    
+    printk("Unmap memory");
     printk("PID %d deregistered\n", state->pid);
 
     kfree(state);

@@ -4,6 +4,7 @@
 #include <linux/kallsyms.h>
 #include <linux/kprobes.h>
 #include <linux/mm.h>
+#include <linux/preempt.h>
 
 #include "hpmmap.h"
 #include "probe.h"
@@ -27,7 +28,21 @@ struct hpmmap_probe_data {
     unsigned long clone_flags;
 };
 
+// do our own resets to avoid access of kernel symbol current_krobe
+static void
+hpmmap_reset_current_kprobe(void)
+{
+    extern void *__hpmmap_current_kprobe;
+    
+    __this_cpu_write(__hpmmap_current_kprobe, NULL);
+}
 
+
+//#define PREEMPT_ON()  preempt_enable_no_resched()
+#define PREEMPT_ON()  //  barrier()  // presumably needed even on nopreempt kernel...
+#define RESET_CURRENT_KPROBE() hpmmap_reset_current_kprobe(); PREEMPT_ON();
+ 
+//#define RESET_CURRENT_KPROBE() reset_current_kprobe()
 
 
 
@@ -145,9 +160,7 @@ hpmmap_get_user_pages_probe(struct kprobe  * kp,
         /* We found the region - blow away the original function call */
         regs->ip = (unsigned long)&hpmmap_get_user_pages_fn;
 
-        //hpmmap_reset_current_kprobe();
-        reset_current_kprobe();
-        //preempt_enable_no_resched();
+        RESET_CURRENT_KPROBE();
 
         return 1;
     }
@@ -174,9 +187,7 @@ __hpmmap_get_user_pages_probe(struct kprobe  * kp,
         /* We found the region - blow away the original function call */
         regs->ip = (unsigned long)&__hpmmap_get_user_pages_fn;
 
-        //hpmmap_reset_current_kprobe();
-        reset_current_kprobe();
-        //preempt_enable_no_resched();
+        RESET_CURRENT_KPROBE();
 
         return 1;
     }
@@ -198,9 +209,7 @@ hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
         /* We found the region - blow away the original function call */
         regs->ip = (unsigned long)&hpmmap_get_user_pages_fast_fn;
 
-        //hpmmap_reset_current_kprobe();
-        reset_current_kprobe();
-        //preempt_enable_no_resched();
+        RESET_CURRENT_KPROBE();
 
         return 1;
     }
@@ -222,9 +231,7 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
         /* We found the region - blow away the original function call */
         regs->ip = (unsigned long)&__hpmmap_get_user_pages_fast_fn;
 
-        //hpmmap_reset_current_kprobe();
-        reset_current_kprobe();
-        //preempt_enable_no_resched();
+        RESET_CURRENT_KPROBE();
 
         return 1;
     }

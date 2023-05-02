@@ -289,8 +289,13 @@ ctrl_fops =
     .compat_ioctl   = hpmmap_ioctl
 };
     
+void *__hpmmap_current_kprobe=0;
 
-static int __init 
+static char *cur_kprobe = 0;
+module_param(cur_kprobe, charp, 0);
+MODULE_PARM_DESC(cur_kprobe, "Address of current_kprobe (required)");
+
+int __init 
 hpmmap_init(void)
 {
     dev_t dev = MKDEV(0, 0);
@@ -301,34 +306,60 @@ hpmmap_init(void)
     printk("Initializing HPMMAP memory management\n");
     printk("-------------------------------------\n");
     printk("-------------------------------------\n");
+    if (!cur_kprobe) {
+	printk("ERROR:  the cur_kprobe parameter is required\n");
+	return -1;
+    }
+
+    kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
+
+    printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n", cur_kprobe, (void*)__hpmmap_current_kprobe);
 
     if (hpmmap_linux_symbol_init() == -1) {
         return -1;
     }
+
+    printk("symbol init done\n");
     
     if (hook_mmap_syscalls() == -1) {
         ret = -1;
         goto err;
     }
 
+    printk("hook mmap syscalls done\n");
+
     if (init_hpmmap_probes() == -1) {
         ret = -1;
         goto err;
     }
 
+    printk("init probes done\n");
+
     {
         int num_nodes = numa_num_nodes();
         int node_id   = 0;
         
-        memzones = kmalloc(GFP_KERNEL, sizeof(struct buddy_memzone *) * num_nodes);
+        printk("setting up for %d numa nodes\n", num_nodes);
+	
+        memzones = kmalloc(sizeof(struct buddy_memzone *) * num_nodes, GFP_KERNEL);
+    	printk("allocated\n");
+
         memset(memzones, 0, sizeof(struct buddy_memzone *) * num_nodes);
+
+        printk("zeroed\n");
 
         hpmmap_proc_dir = proc_mkdir(PROC_DIR, NULL);
 
+        printk("proc dir configured\n");
+
         for (node_id = 0; node_id < num_nodes; node_id++) {
             struct buddy_memzone * zone = NULL;
+
+            printk("start buddy init on node %d\n",node_id);
             
             zone = buddy_init(get_order(0x40000000) + PAGE_SHIFT, PAGE_SHIFT, node_id, hpmmap_proc_dir);
+
+            printk("done buddy init on node %d\n",node_id);
 
             if (zone == NULL) {
                 PrintError("Could not initialization memory management for node %d\n", node_id);
@@ -364,6 +395,12 @@ hpmmap_init(void)
     cdev_add(&ctrl_dev, dev, 1);
 
     device_create(hpmmap_class, NULL, dev, NULL, DEV_FILENAME);
+
+    printk("device file interface configured\n");
+
+    printk("initialization complete\n");
+
+    printk("-------------------------------------\n");
 
     return 0;
 

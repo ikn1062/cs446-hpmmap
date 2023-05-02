@@ -1,0 +1,79 @@
+From f9d660769b6223e9b3135726f6c12bffa86b9535 Mon Sep 17 00:00:00 2001
+From: Jin Han <jinhan2019@u.northwestern.edu>
+Date: Wed, 12 Jun 2019 08:39:47 -0700
+Subject: [PATCH 3/5] HPMMAP changes and created a setup script
+
+---
+ kernel/hpmmap/mod/mmap.c           |  2 +-
+ kernel/hpmmap/mod/util-hashtable.c |  2 +-
+ kernel/hpmmap/mod/util-hashtable.h |  5 ++++-
+ kernel/hpmmap/setup.sh             | 15 +++++++++++++++
+ 4 files changed, 21 insertions(+), 3 deletions(-)
+ create mode 100755 kernel/hpmmap/setup.sh
+
+diff --git a/kernel/hpmmap/mod/mmap.c b/kernel/hpmmap/mod/mmap.c
+index ece73df..f5bdd67 100644
+--- a/kernel/hpmmap/mod/mmap.c
++++ b/kernel/hpmmap/mod/mmap.c
+@@ -332,7 +332,7 @@ find_memory_state(u32 pid)
+ static u32 
+ mem_hash_fn(uintptr_t key)
+ {
+-    return hash_long(key);
++    return util_hash_long(key);
+ }
+ 
+ static int 
+diff --git a/kernel/hpmmap/mod/util-hashtable.c b/kernel/hpmmap/mod/util-hashtable.c
+index c89b994..f2d6a21 100644
+--- a/kernel/hpmmap/mod/util-hashtable.c
++++ b/kernel/hpmmap/mod/util-hashtable.c
+@@ -84,7 +84,7 @@ static inline u32 do_hash(struct hashtable * htable, uintptr_t key) {
+ #define GOLDEN_RATIO_PRIME 0x9e370001UL
+ #endif
+ 
+-u32 hash_long(uintptr_t val) {
++u32 util_hash_long(uintptr_t val) {
+     uintptr_t hash = val;
+ 
+ #ifdef __64BIT__
+diff --git a/kernel/hpmmap/mod/util-hashtable.h b/kernel/hpmmap/mod/util-hashtable.h
+index 83b0112..51200ea 100644
+--- a/kernel/hpmmap/mod/util-hashtable.h
++++ b/kernel/hpmmap/mod/util-hashtable.h
+@@ -65,7 +65,10 @@ struct hashtable;
+ 
+ 
+ /* These cannot be inlined because they are referenced as fn ptrs */
+-u32 hash_long(uintptr_t val);
++
++/* changed function name hash_long to util_hash_long
++   since linus already has hash_long defined */
++u32 util_hash_long(uintptr_t val);
+ u32 hash_buffer(u8 * msg, u32 length);
+ 
+ 
+diff --git a/kernel/hpmmap/setup.sh b/kernel/hpmmap/setup.sh
+new file mode 100755
+index 0000000..6945532
+--- /dev/null
++++ b/kernel/hpmmap/setup.sh
+@@ -0,0 +1,15 @@
++#! /bin/sh
++
++# load module
++mod/reload.sh
++dmesg -c &> /dev/null
++
++# check mem status
++utils/mem_ctrl -s
++
++# allocate some memory to hpmmap
++utils/mem_ctrl -a 4 -n 0
++
++# set enviroment variable 
++export OMPI_COMM_WORLD_LOCAL_RANK=0
++
+-- 
+2.17.1
+
