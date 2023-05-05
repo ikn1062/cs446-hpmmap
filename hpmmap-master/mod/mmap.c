@@ -651,7 +651,7 @@ out:
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
-        vfs_read(file, (void *)vaddr, len, &pos);
+        kernel_read(file, (void *)vaddr, len, &pos);
     }
 
     return (unsigned long)vaddr;
@@ -2365,7 +2365,7 @@ create_file_mapping(struct memory_state * state,
         /* Copy the file into this region */
         {
            loff_t pos = 0;
-           vfs_read(file, (void *)vaddr, file_len, &pos);
+           kernel_read(file, (void *)vaddr, file_len, &pos);
         }
 
         /* Save phys reg pointer */
