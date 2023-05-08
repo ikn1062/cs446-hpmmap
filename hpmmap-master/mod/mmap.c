@@ -7,8 +7,6 @@
 #include <linux/version.h>
 #include <asm/uaccess.h>
 
-#include <asm/tlb.h>
-
 #include "mmap.h"
 #include "mapper.h"
 #include "hpmmap.h"
@@ -16,6 +14,13 @@
 #include "pgtables.h"
 #include "override.h"
 #include "mm.h"
+
+extern void flush_tlb_mm_range(struct mm_struct *mm, unsigned long start,
+                unsigned long end, unsigned int stride_shift,
+                bool freed_tables);  
+
+#include <asm/tlbflush.h>
+#include <asm/tlb.h>
 
 
 #define HPMMAP_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_EXEC)
@@ -538,7 +543,7 @@ hpmmap_brk(unsigned long brk)
         return original_brk(brk);
     } 
 
-    while (mutex_lock_interruptible(&(state->mutex)));
+    while (mutex_lock_interruptible(&(state->mutex))) {};
     {
         ret = __hpmmap_brk(state, brk);
     }
@@ -734,7 +739,7 @@ do_hpmmap_mmap_file(struct memory_state * state,
         {
             error = file->f_op->mmap(file, &fake_vma);
         }
-        while (mutex_lock_interruptible(&(state->mutex)));
+        while (mutex_lock_interruptible(&(state->mutex))) {};
 
         if (error) {
             ret = error;
@@ -907,7 +912,7 @@ hpmmap_mmap(unsigned long addr,
     }
 
     /* Ok, it's ours */
-    while (mutex_lock_interruptible(&(state->mutex)));
+    while (mutex_lock_interruptible(&(state->mutex))) {};
     {
         ret = __hpmmap_mmap_pgoff(state, addr, len, prot, flags, fd, pgoff);
     }
@@ -1038,7 +1043,7 @@ hpmmap_munmap(unsigned long addr,
         }
     }
 
-    while (mutex_lock_interruptible(&(state->mutex)));
+    while (mutex_lock_interruptible(&(state->mutex))) {};
     {
         ret = __hpmmap_munmap(state, addr, len);
     }
@@ -1130,7 +1135,7 @@ hpmmap_mprotect(unsigned long addr,
         }
     }
 
-    while (mutex_lock_interruptible(&(state->mutex)));
+    while (mutex_lock_interruptible(&(state->mutex))) {};
     {
         ret = __hpmmap_mprotect(state, addr, len, prot);
     }
@@ -1188,7 +1193,7 @@ hpmmap_madvise(unsigned long addr,
         }
     }
 
-    while (mutex_lock_interruptible(&(state->mutex)));
+    while (mutex_lock_interruptible(&(state->mutex))) {};
     {
         ret = __hpmmap_madvise(state, addr, len, advice);
     }
@@ -1330,11 +1335,19 @@ hpmmap_get_user_pages(u32                      pid,
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3,11,0)
             tlb_gather_mmu(&tlb, current->mm, 0);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0)
             tlb_gather_mmu(&tlb, current->mm, addr, addr + (i * PAGE_SIZE));
+#else
+            tlb_gather_mmu(&tlb, current->mm);
 #endif
+
             tlb.need_flush_all = 1;
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0)
             tlb_finish_mmu(&tlb, addr, addr + (i * PAGE_SIZE));
+#else 
+            tlb_finish_mmu(&tlb);
+#endif
 
             return i;
         }

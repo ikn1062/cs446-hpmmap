@@ -300,6 +300,7 @@ hpmmap_init(void)
 {
     dev_t dev = MKDEV(0, 0);
     int ret   = 0;
+    int conversion = 0;
     
     printk("-------------------------------------\n");
     printk("-------------------------------------\n");
@@ -307,11 +308,15 @@ hpmmap_init(void)
     printk("-------------------------------------\n");
     printk("-------------------------------------\n");
     if (!cur_kprobe) {
-	printk("ERROR:  the cur_kprobe parameter is required\n");
-	return -1;
+        printk("ERROR:  the cur_kprobe parameter is required\n");
+        return -1;
     }
 
-    kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
+    conversion = kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
+    if (!conversion) {
+        printk("ERROR:  kstrtoul of cur_kprobe parameter is unsuccessful\n");
+        return -1;
+    }
 
     printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n", cur_kprobe, (void*)__hpmmap_current_kprobe);
 

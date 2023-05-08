@@ -614,12 +614,14 @@ zone_proc_open(struct inode * inode,
                struct file  * filp) {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3,10,0)
     return single_open(filp, zone_mem_show, PDE(inode)->data);
-#else
+#elif LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)
     return single_open(filp, zone_mem_show, PDE_DATA(inode));
+#else 
+    return single_open(filp, zone_mem_show, pde_data(inode));
 #endif
 }
 
-
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,6,0)
 static struct file_operations 
 zone_proc_ops =
 {
@@ -629,7 +631,16 @@ zone_proc_ops =
     .llseek  = seq_lseek, 
     .release = single_release,
 };
-
+#else
+static struct proc_ops 
+zone_proc_ops =
+{
+    .proc_open    = zone_proc_open, 
+    .proc_read    = seq_read,
+    .proc_lseek  = seq_lseek, 
+    .proc_release = single_release,
+};
+#endif
 
 void 
 buddy_deinit(struct buddy_memzone  * zone, 
