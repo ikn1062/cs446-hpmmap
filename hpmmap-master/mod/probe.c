@@ -5,6 +5,7 @@
 #include <linux/kprobes.h>
 #include <linux/mm.h>
 #include <linux/preempt.h>
+#include <linux/moduleparam.h>
 
 #include "hpmmap.h"
 #include "probe.h"
@@ -239,6 +240,9 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
     return 0;
 }
 
+static char *cpy_process = 0;
+module_param(cpy_process, charp, 0);
+MODULE_PARM_DESC(cpy_process, "Lookup Name of Copy Process in kernel kallsyms");
 
 int 
 init_hpmmap_probes(void) 
@@ -250,7 +254,8 @@ init_hpmmap_probes(void)
         symbol_addr = kallsyms_lookup_name("copy_process");
 
         if (symbol_addr == 0) {
-            symbol_addr = kallsyms_lookup_name("copy_process.part.25");
+
+            symbol_addr = kallsyms_lookup_name(cpy_process);
 
             if (symbol_addr == 0) {
                 PrintError("Could not find copy_process symbol address\n");
