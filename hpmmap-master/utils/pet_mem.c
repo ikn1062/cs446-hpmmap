@@ -92,12 +92,14 @@ get_avail_regions()
     memset(mem_buf, 0, 128);
 
     while (fgets(mem_buf, 128, mem_file)) {
+        printf("mem_buf=%s\n",mem_buf);
         unsigned long start = 0;
         unsigned long end   = 0;
         char        * type  = NULL;
 
-        sscanf(mem_buf, "%llx-%llx :", &start, &end);
-
+        int rc = sscanf(mem_buf, "%llx-%llx :", &start, &end);
+        printf("rc=%d\n",rc);
+        
         type  = index(mem_buf, ':');
         type += 2;
 
@@ -108,6 +110,7 @@ get_avail_regions()
             new_region->end   = end;
             new_region->next  = tmp_region;
             tmp_region        = new_region;
+            printf("Adding region %llx-%llx\n", start, end);
         }
     }
 
