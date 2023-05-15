@@ -3,10 +3,12 @@
 
 #include "override.h"
 #include "util-hashtable.h"
+#include "probe.h"
 
 
 // Module parameter
-static unsigned long syscall_table_addr = kallsyms_lookup_name_fn(sys_call_table);
+static const char *sys_call_table_name = "sys_call_table";
+static unsigned long syscall_table_addr = 0;
 // static unsigned long syscall_table_addr = 0;
 // module_param(syscall_table_addr, ulong, 0);
 // MODULE_PARM_DESC(syscall_table_addr, "Address of system call table");
@@ -48,6 +50,7 @@ hook_syscall(void * new_fn,
     unsigned long ** syscall_table = NULL;
     void *           orig_fn       = NULL;
 
+    syscall_table_addr = kallsyms_lookup_name_fn(sys_call_table_name);
     if (syscall_table_addr == 0) {
         // Userspace couldn't find syscall table - we will have to search for it here ...
         return NULL;
