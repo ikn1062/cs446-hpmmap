@@ -1,6 +1,8 @@
 #LINUX_KERN=/usr/src/kernels/$(shell uname -r)
 LINUX_KERN=/lib/modules/`uname -r`/build/
 
+CONFIG_MODULE_SIG=n
+
 EXTRA_CFLAGS  += -DMODULE=1 -D__KERNEL__=1
 
 hpmmaptest-y := test.o
