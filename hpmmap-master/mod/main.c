@@ -315,7 +315,11 @@ hpmmap_init(void)
         return -1;
     }
 
-    __hpmmap_current_kprobe_add = kallsyms_lookup_name_fn(current_kprobe_name);
+    conversion = kallsyms_lookup_name_fn(current_kprobe_name, &__hpmmap_current_kprobe_add);
+    if (conversion < 0) {
+        ret = -1;
+        goto err;
+    }
     __hpmmap_current_kprobe = &__hpmmap_current_kprobe_add;
     /*
     conversion = kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);

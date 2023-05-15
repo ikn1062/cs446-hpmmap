@@ -21,9 +21,13 @@ static void notrace do_exit_function(unsigned long ip, unsigned long parent_ip, 
     //local_irq_enable();
 }
 
+
 static int fh_resolve_hook_address(struct ftrace_hook *hook)
 {
-    hook->address = kallsyms_lookup_name_fn(hook->name);
+    err = kallsyms_lookup_name_fn(hook->name, &hook->address);
+    if (err < -1) {
+        return ENOENT;
+    }
 
     if (!hook->address) {
         PrintError("unresolved symbol: %s\n", hook->name);
