@@ -289,7 +289,9 @@ ctrl_fops =
     .unlocked_ioctl = hpmmap_ioctl,
     .compat_ioctl   = hpmmap_ioctl
 };
-    
+
+static const char* current_kprobe_name = "current_kprobe";
+static unsigned long __hpmmap_current_kprobe_add=0;
 void *__hpmmap_current_kprobe=0;
 
 static char *cur_kprobe = 0;
@@ -313,14 +315,17 @@ hpmmap_init(void)
         return -1;
     }
 
+    __hpmmap_current_kprobe_add = kallsyms_lookup_name_fn(current_kprobe_name);
+    __hpmmap_current_kprobe = &__hpmmap_current_kprobe_add;
+    /*
     conversion = kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
     if (!conversion) {
         printk("ERROR:  kstrtoul of cur_kprobe parameter is unsuccessful\n");
         return -1;
     }
-
+    */
     printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n", cur_kprobe, (void*)__hpmmap_current_kprobe);
-
+    
     if (hpmmap_linux_symbol_init() == -1) {
         return -1;
     }
