@@ -656,7 +656,11 @@ out:
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0)
         vfs_read(file, (void *)vaddr, len, &pos);
+#else
+        kernel_read(file, (void *)vaddr, len, &pos);
+#endif
     }
 
     return (unsigned long)vaddr;
