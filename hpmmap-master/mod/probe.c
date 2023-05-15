@@ -5,6 +5,7 @@
 #include <linux/kprobes.h>
 #include <linux/mm.h>
 #include <linux/preempt.h>
+//#include <linux/kthread.h>
 
 #include "hpmmap.h"
 #include "probe.h"
@@ -13,8 +14,8 @@
 /* copy_process uses a kretprobe because we need to let the clone happen first */
 static struct kretprobe copy_process_probe;
 
-/* do_exit uses a jprobe because we really want to avoid interrupt context here */
-static struct jprobe    do_exit_probe;
+/* do_exit originally used a jprobe to avoid interrupt context, kprobe should have this automatically disabled*/
+static struct kprobe    do_exit_probe;
 
 /* get_user_pages functions use kprobes - we won't sleep in them */
 static struct kprobe    get_user_pages_probe;
@@ -84,10 +85,12 @@ hpmmap_copy_process_exit(struct kretprobe_instance * ri,
 
 
 static void
-hpmmap_do_exit(long code)
+hpmmap_do_exit(struct kprobe  * kp,
+               struct pt_regs * regs)
 {
+    //local_irq_disable();
     unmap_process(current->pid);
-    jprobe_return();
+    //local_irq_enable();
 }
 
 
@@ -273,10 +276,10 @@ init_hpmmap_probes(void)
 
     /* do_exit */
     {
-        memset(&do_exit_probe, 0, sizeof(struct jprobe));
+        memset(&do_exit_probe, 0, sizeof(struct kprobe));
 
-        do_exit_probe.kp.symbol_name = "do_exit";
-        do_exit_probe.entry          = hpmmap_do_exit;
+        do_exit_probe.symbol_name = "do_exit";
+        do_exit_probe.pre_handler = hpmmap_do_exit;
 
         register_jprobe(&do_exit_probe);
     }
@@ -331,7 +334,7 @@ int
 deinit_hpmmap_probes(void) 
 {
     unregister_kretprobe(&copy_process_probe);
-    unregister_jprobe(&do_exit_probe);
+    unregister_kprobe(&do_exit_probe);
 
     unregister_kprobe(&get_user_pages_probe);
     unregister_kprobe(&__get_user_pages_probe);
