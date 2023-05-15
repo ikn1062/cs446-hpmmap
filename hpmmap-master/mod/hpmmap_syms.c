@@ -7,6 +7,7 @@
 #include "probe.h"
 
 static int err;
+extern kallsyms_lookup_name_t kallsyms_lookup_name_fn;
 
 void (*tlb_finish_mmu_fn)(struct mmu_gather * tlb);
 void (*tlb_flush_mmu_fn)(struct mmu_gather * tlb);

@@ -29,7 +29,7 @@ static struct kprobe    get_user_pages_fast_probe;
 static struct kprobe    __get_user_pages_fast_probe;
 
 
-int get_kallsyms_lookup(void)
+int get_kallsyms_lookup(kallsyms_lookup_name_t* kallsyms_fun)
 {
     struct kprobe kp = {
         .symbol_name = "kallsyms_lookup_name"
@@ -38,12 +38,12 @@ int get_kallsyms_lookup(void)
 
     int check_reg = register_kprobe(&kp);
     if (check_reg < 0) {
-        PrintError("failed to register kprobe for %s, returned %d\n", lookup_name, check_reg);
+        PrintError("failed to register kprobe for %s, returned %d\n", "kallsyms_lookup_name", check_reg);
         return check_reg;
     }
     //*ret_address = (unsigned long) kp.addr;
 
-    kallsyms_lookup_name_fn = (kallsyms_lookup_name_t) kp.addr;
+    *kallsyms_fun = (kallsyms_lookup_name_t) kp.addr;
 
     PrintDebug("Unregistering Kprobe for kallsyms_lookup_name");
     unregister_kprobe(&kp);
@@ -274,6 +274,7 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
     return 0;
 }
 
+extern kallsyms_lookup_name_t kallsyms_lookup_name_fn;
 int check_sym;
 int 
 init_hpmmap_probes(void) 

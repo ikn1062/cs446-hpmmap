@@ -298,6 +298,8 @@ static char *cur_kprobe = 0;
 module_param(cur_kprobe, charp, 0);
 MODULE_PARM_DESC(cur_kprobe, "Address of current_kprobe (required)");
 
+kallsyms_lookup_name_t kallsyms_lookup_name_fn;
+
 int __init 
 hpmmap_init(void)
 {
@@ -315,7 +317,7 @@ hpmmap_init(void)
         return -1;
     }
     
-    int conversion = get_kallsyms_lookup();
+    conversion = get_kallsyms_lookup(&kallsyms_lookup_name_fn);
     if (conversion < 0) {
         PrintError("Kprobe Kallsysms failed\n");
         ret = -1;
@@ -327,7 +329,7 @@ hpmmap_init(void)
         ret = -1;
         goto err;
     }
-    *__hpmmap_current_kprobe = (unsigned long*)__hpmmap_current_kprobe_add;
+    __hpmmap_current_kprobe = (void*)__hpmmap_current_kprobe_add;
     /*
     conversion = kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
     if (!conversion) {

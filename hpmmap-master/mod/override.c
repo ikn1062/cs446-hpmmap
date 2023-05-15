@@ -14,6 +14,8 @@ static unsigned long syscall_table_addr = 0;
 // MODULE_PARM_DESC(syscall_table_addr, "Address of system call table");
 // End module parameter
 
+extern kallsyms_lookup_name_t kallsyms_lookup_name_fn;
+
 static void
 enable_page_protection( void )
 { 

@@ -12,6 +12,7 @@
 
 static struct ftrace_hook do_exit_fhook;
 static int err;
+extern kallsyms_lookup_name_t kallsyms_lookup_name_fn;
 
 // can change this to call the original do_exit while being protected in interrupt context switch
 static void notrace do_exit_function(unsigned long ip, unsigned long parent_ip, struct ftrace_ops *op, struct pt_regs *regs)
