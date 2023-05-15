@@ -9,7 +9,7 @@ struct ftrace_hook
 
     unsigned long address;
     struct ftrace_ops ops;
-}
+};
 
 
 int init_hpmmap_ftrace(void);

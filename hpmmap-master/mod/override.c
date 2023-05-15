@@ -6,9 +6,10 @@
 
 
 // Module parameter
-static unsigned long syscall_table_addr = 0;
-module_param(syscall_table_addr, ulong, 0);
-MODULE_PARM_DESC(syscall_table_addr, "Address of system call table");
+static unsigned long syscall_table_addr = kallsyms_lookup_name_fn(sys_call_table);
+// static unsigned long syscall_table_addr = 0;
+// module_param(syscall_table_addr, ulong, 0);
+// MODULE_PARM_DESC(syscall_table_addr, "Address of system call table");
 // End module parameter
 
 static void

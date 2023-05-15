@@ -27,6 +27,7 @@
 #include "probe.h"
 #include "mm.h"
 #include "hpmmap_syms.h"
+#include "ftrace_hook.h"
 
 MODULE_LICENSE("GPL");
 
@@ -340,6 +341,13 @@ hpmmap_init(void)
 
     printk("init probes done\n");
 
+    if (init_hpmmap_ftrace() == -1) {
+        ret = -1;
+        goto err;
+    }
+
+    printk("init ftrace done\n");
+
     {
         int num_nodes = numa_num_nodes();
         int node_id   = 0;
@@ -413,6 +421,7 @@ err:
     
     unhook_mmap_syscalls();
     deinit_hpmmap_probes();
+    deinit_hpmmap_ftrace();
 
     return ret;
 }
@@ -423,6 +432,7 @@ hpmmap_exit(void )
 {
     dev_t dev = 0;
 
+    deinit_hpmmap_ftrace();
     deinit_hpmmap_probes();
     unhook_mmap_syscalls();
 

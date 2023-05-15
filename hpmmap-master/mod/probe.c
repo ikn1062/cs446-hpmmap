@@ -5,6 +5,7 @@
 #include <linux/kprobes.h>
 #include <linux/mm.h>
 #include <linux/preempt.h>
+#include <linux/version.h>
 //#include <linux/kthread.h>
 
 #include "hpmmap.h"
@@ -28,28 +29,31 @@ static struct kprobe    get_user_pages_fast_probe;
 static struct kprobe    __get_user_pages_fast_probe;
 
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5,7,0)
+//#if LINUX_VERSION_CODE < KERNEL_VERSION(5,7,0)
 unsigned long kallsyms_lookup_name_fn(const char *lookup_name)
 {
     struct kprobe kp = {
-        .symbol_name = lookup_name;
-    }
+        .symbol_name = lookup_name
+    };
     unsigned long address;
 
-    check_reg = register_kprobe(&kp);
-    if (ret < 0) {
-        PrintError("failed to register kprobe, returned %d\n", ret);
-        return ret;
+    int check_reg = register_kprobe(&kp);
+    if (check_reg < 0) {
+        PrintError("failed to register kprobe, returned %d\n", check_reg);
+        return check_reg;
     }
     address = (unsigned long) kp.addr;
     unregister_kprobe(&kp);
     return address;
 }
+/*
 #else 
 unsigned long kallsyms_lookup_name_fn(const char *lookup_name)
 {
-    return kallsyms_lookup_name(name);
+    return kallsyms_lookup_name(lookup_name);
 }
+#endif
+*/
 
 
 /* copy_process_probe private data */
