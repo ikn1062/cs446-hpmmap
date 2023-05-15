@@ -43,6 +43,7 @@ disable_page_protection( void )
 }
 
 // Returns original system call
+int check_err;
 void * 
 hook_syscall(void * new_fn, 
              u32    index) 
@@ -50,8 +51,8 @@ hook_syscall(void * new_fn,
     unsigned long ** syscall_table = NULL;
     void *           orig_fn       = NULL;
 
-    syscall_table_addr = kallsyms_lookup_name_fn(sys_call_table_name);
-    if (syscall_table_addr == 0) {
+    check_err = kallsyms_lookup_name_fn(sys_call_table_name, &syscall_table_addr);
+    if (syscall_table_addr < 0) {
         // Userspace couldn't find syscall table - we will have to search for it here ...
         return NULL;
     }

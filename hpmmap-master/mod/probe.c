@@ -30,7 +30,7 @@ static struct kprobe    __get_user_pages_fast_probe;
 
 
 //#if LINUX_VERSION_CODE < KERNEL_VERSION(5,7,0)
-unsigned long kallsyms_lookup_name_fn(const char *lookup_name, unsigned long ret_address)
+int kallsyms_lookup_name_fn(const char *lookup_name, unsigned long *ret_address)
 {
     struct kprobe kp = {
         .symbol_name = lookup_name
@@ -41,8 +41,10 @@ unsigned long kallsyms_lookup_name_fn(const char *lookup_name, unsigned long ret
         PrintError("failed to register kprobe for %s, returned %d\n", lookup_name, check_reg);
         return check_reg;
     }
-    ret_address = (unsigned long) kp.addr;
+    *ret_address = (unsigned long) kp.addr;
     unregister_kprobe(&kp);
+
+    return 0;
 }
 /*
 #else 

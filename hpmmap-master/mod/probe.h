@@ -14,7 +14,7 @@
 #ifndef _PROBE_H
 #define _PROBE_H
 
-unsigned long kallsyms_lookup_name_fn(const char *lookup_name);
+int kallsyms_lookup_name_fn(const char *lookup_name, unsigned long *ret_address);
 int init_hpmmap_probes(void);
 int deinit_hpmmap_probes(void);
 

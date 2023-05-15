@@ -6,6 +6,7 @@
 #include "hpmmap_syms.h"
 #include "probe.h"
 
+static int err;
 
 void (*tlb_finish_mmu_fn)(struct mmu_gather * tlb);
 void (*tlb_flush_mmu_fn)(struct mmu_gather * tlb);
@@ -37,7 +38,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_gather_mmu
      */
     {
-        symbol_addr = kallsyms_lookup_name_fn("tlb_gather_mmu");
+        err = kallsyms_lookup_name_fn("tlb_gather_mmu", &symbol_addr);
 
         if (symbol_addr == 0) {
             PrintError("Linux symbol tlb_gather_mmu not found.\n");
@@ -52,7 +53,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_finish_mmu
      */
     {
-        symbol_addr = kallsyms_lookup_name_fn("tlb_finish_mmu");
+        err = kallsyms_lookup_name_fn("tlb_finish_mmu", &symbol_addr);
 
         if (symbol_addr == 0) {
             PrintError("Linux symbol tlb_finish_mmu not found.\n");
@@ -66,7 +67,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_flush_mmu
      */
     {
-        symbol_addr = kallsyms_lookup_name_fn("tlb_flush_mmu");
+        err = kallsyms_lookup_name_fn("tlb_flush_mmu", &symbol_addr);
 
         if (symbol_addr == 0) {
             PrintError(KERN_ERR "Linux symbol tlb_flush_mmu not found.\n");
