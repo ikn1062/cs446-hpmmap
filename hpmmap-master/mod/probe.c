@@ -14,8 +14,12 @@
 /* copy_process uses a kretprobe because we need to let the clone happen first */
 static struct kretprobe copy_process_probe;
 
-/* do_exit originally used a jprobe to avoid interrupt context, kprobe should have this automatically disabled*/
-static struct kprobe    do_exit_probe;
+/* 
+UPDATE NEWEST: Removed and replaced by Ftrace call 
+
+UPDATE: do_exit originally used a jprobe to avoid interrupt context, kprobe should have this automatically disabled
+*/
+// static struct kprobe    do_exit_probe;
 
 /* get_user_pages functions use kprobes - we won't sleep in them */
 static struct kprobe    get_user_pages_probe;
@@ -24,12 +28,36 @@ static struct kprobe    get_user_pages_fast_probe;
 static struct kprobe    __get_user_pages_fast_probe;
 
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,7,0)
+unsigned long kallsyms_lookup_name_fn(const char *lookup_name)
+{
+    struct kprobe kp = {
+        .symbol_name = lookup_name;
+    }
+    unsigned long address;
+
+    check_reg = register_kprobe(&kp);
+    if (ret < 0) {
+        PrintError("failed to register kprobe, returned %d\n", ret);
+        return ret;
+    }
+    address = (unsigned long) kp.addr;
+    unregister_kprobe(&kp);
+    return address;
+}
+#else 
+unsigned long kallsyms_lookup_name_fn(const char *lookup_name)
+{
+    return kallsyms_lookup_name(name);
+}
+
+
 /* copy_process_probe private data */
 struct hpmmap_probe_data {
     unsigned long clone_flags;
 };
 
-// do our own resets to avoid access of kernel symbol current_krobe
+// do our own resets to avoid access of kernel symbol current_kprobe
 static void
 hpmmap_reset_current_kprobe(void)
 {
@@ -83,7 +111,8 @@ hpmmap_copy_process_exit(struct kretprobe_instance * ri,
     return 0;
 }
 
-
+/* Removed and replaced by Ftrace call */
+/*
 static int
 hpmmap_do_exit(struct kprobe  * kp,
                struct pt_regs * regs)
@@ -93,6 +122,7 @@ hpmmap_do_exit(struct kprobe  * kp,
     //local_irq_enable();
     return 0;
 }
+*/
 
 
 static long
@@ -251,10 +281,10 @@ init_hpmmap_probes(void)
 
     /* copy_process */
     {
-        symbol_addr = kallsyms_lookup_name("copy_process");
+        symbol_addr = kallsyms_lookup_name_fn("copy_process");
 
         if (symbol_addr == 0) {
-            symbol_addr = kallsyms_lookup_name("copy_process.part.25");
+            symbol_addr = kallsyms_lookup_name_fn("copy_process.part.25");
 
             if (symbol_addr == 0) {
                 PrintError("Could not find copy_process symbol address\n");
@@ -274,8 +304,9 @@ init_hpmmap_probes(void)
         register_kretprobe(&copy_process_probe);
     }
 
-
+    /* Removed and replaced by Ftrace call */
     /* do_exit */
+    /*
     {
         memset(&do_exit_probe, 0, sizeof(struct kprobe));
 
@@ -284,7 +315,7 @@ init_hpmmap_probes(void)
 
         register_kprobe(&do_exit_probe);
     }
-
+    */
 
     /* get_user_pages */
     {
@@ -335,7 +366,9 @@ int
 deinit_hpmmap_probes(void) 
 {
     unregister_kretprobe(&copy_process_probe);
-    unregister_kprobe(&do_exit_probe);
+    
+    /* Removed and replaced by Ftrace call */
+    // unregister_kprobe(&do_exit_probe);
 
     unregister_kprobe(&get_user_pages_probe);
     unregister_kprobe(&__get_user_pages_probe);
@@ -357,7 +390,7 @@ hpmmap_reset_current_kprobe(void)
 
     /* current_kprobe */
     {
-        symbol_addr = kallsyms_lookup_name("current_kprobe");
+        symbol_addr = kallsyms_lookup_name_fn("current_kprobe");
 
         if (symbol_addr == 0) {
             PrintError("Could not find current_kprobe symbol address\n");
