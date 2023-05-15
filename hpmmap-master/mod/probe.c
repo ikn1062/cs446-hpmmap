@@ -84,13 +84,14 @@ hpmmap_copy_process_exit(struct kretprobe_instance * ri,
 }
 
 
-static void
+static int
 hpmmap_do_exit(struct kprobe  * kp,
                struct pt_regs * regs)
 {
     //local_irq_disable();
     unmap_process(current->pid);
     //local_irq_enable();
+    return 0;
 }
 
 
@@ -281,7 +282,7 @@ init_hpmmap_probes(void)
         do_exit_probe.symbol_name = "do_exit";
         do_exit_probe.pre_handler = hpmmap_do_exit;
 
-        register_jprobe(&do_exit_probe);
+        register_kprobe(&do_exit_probe);
     }
 
 
