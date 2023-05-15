@@ -132,5 +132,6 @@ hpmmap_check_pages(int numa_node);
  */
 void hpmmap_free_pages(uintptr_t page_addr, 
                        u64 num_pages);
+                       
 
 #endif /* _HPMMAP_H */

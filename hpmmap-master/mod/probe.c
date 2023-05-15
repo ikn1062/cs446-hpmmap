@@ -29,31 +29,28 @@ static struct kprobe    get_user_pages_fast_probe;
 static struct kprobe    __get_user_pages_fast_probe;
 
 
-//#if LINUX_VERSION_CODE < KERNEL_VERSION(5,7,0)
-int kallsyms_lookup_name_fn(const char *lookup_name, unsigned long *ret_address)
+int get_kallsyms_lookup(void)
 {
     struct kprobe kp = {
-        .symbol_name = lookup_name
+        .symbol_name = "kallsyms_lookup_name"
     };
+    PrintDebug("Registering Kprobe for kallsyms_lookup_name");
 
     int check_reg = register_kprobe(&kp);
     if (check_reg < 0) {
         PrintError("failed to register kprobe for %s, returned %d\n", lookup_name, check_reg);
         return check_reg;
     }
-    *ret_address = (unsigned long) kp.addr;
+    //*ret_address = (unsigned long) kp.addr;
+
+    kallsyms_lookup_name_fn = (kallsyms_lookup_name_t) kp.addr;
+
+    PrintDebug("Unregistering Kprobe for kallsyms_lookup_name");
     unregister_kprobe(&kp);
 
     return 0;
 }
-/*
-#else 
-unsigned long kallsyms_lookup_name_fn(const char *lookup_name)
-{
-    return kallsyms_lookup_name(lookup_name);
-}
-#endif
-*/
+
 
 
 /* copy_process_probe private data */
@@ -285,15 +282,12 @@ init_hpmmap_probes(void)
 
     /* copy_process */
     {
-        check_sym = kallsyms_lookup_name_fn("copy_process", &symbol_addr);
-        if (check_sym < 0) {
-            return -1;
-        }
+        symbol_addr = kallsyms_lookup_name_fn("copy_process");
 
         if (symbol_addr == 0) {
-            check_sym = kallsyms_lookup_name_fn("copy_process.part.25", &symbol_addr);
+            symbol_addr = kallsyms_lookup_name_fn("copy_process.part.25");
 
-            if (symbol_addr == 0 || check_sym < -1) {
+            if (symbol_addr == 0) {
                 PrintError("Could not find copy_process symbol address\n");
                 return -1;
             }

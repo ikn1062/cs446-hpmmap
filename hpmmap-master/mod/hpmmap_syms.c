@@ -38,7 +38,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_gather_mmu
      */
     {
-        err = kallsyms_lookup_name_fn("tlb_gather_mmu", &symbol_addr);
+        symbol_addr = kallsyms_lookup_name_fn("tlb_gather_mmu");
 
         if (symbol_addr == 0) {
             PrintError("Linux symbol tlb_gather_mmu not found.\n");
@@ -53,7 +53,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_finish_mmu
      */
     {
-        err = kallsyms_lookup_name_fn("tlb_finish_mmu", &symbol_addr);
+        symbol_addr = kallsyms_lookup_name_fn("tlb_finish_mmu");
 
         if (symbol_addr == 0) {
             PrintError("Linux symbol tlb_finish_mmu not found.\n");
@@ -67,7 +67,7 @@ hpmmap_linux_symbol_init(void)
      * --  tlb_flush_mmu
      */
     {
-        err = kallsyms_lookup_name_fn("tlb_flush_mmu", &symbol_addr);
+        symbol_addr = kallsyms_lookup_name_fn("tlb_flush_mmu");
 
         if (symbol_addr == 0) {
             PrintError(KERN_ERR "Linux symbol tlb_flush_mmu not found.\n");

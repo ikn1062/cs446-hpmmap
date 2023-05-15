@@ -314,13 +314,20 @@ hpmmap_init(void)
         printk("ERROR:  the cur_kprobe parameter is required\n");
         return -1;
     }
-
-    conversion = kallsyms_lookup_name_fn(current_kprobe_name, &__hpmmap_current_kprobe_add);
+    
+    int conversion = get_kallsyms_lookup();
     if (conversion < 0) {
+        PrintError("Kprobe Kallsysms failed\n");
         ret = -1;
         goto err;
     }
-    __hpmmap_current_kprobe = &__hpmmap_current_kprobe_add;
+
+    __hpmmap_current_kprobe_add = kallsyms_lookup_name_fn(current_kprobe_name);
+    if (__hpmmap_current_kprobe_add == 0) {
+        ret = -1;
+        goto err;
+    }
+    *__hpmmap_current_kprobe = (unsigned long*)__hpmmap_current_kprobe_add;
     /*
     conversion = kstrtoul(cur_kprobe,16,(unsigned long*)&__hpmmap_current_kprobe);
     if (!conversion) {
@@ -328,7 +335,7 @@ hpmmap_init(void)
         return -1;
     }
     */
-    printk("cur_kprobe = %s  __hpmmap_current_kprobe = %p\n", cur_kprobe, (void*)__hpmmap_current_kprobe);
+    printk("cur_kprobe = %s  __hpmmap_current_kprobe = 0x%p\n", current_kprobe_name, (void*)__hpmmap_current_kprobe);
     
     if (hpmmap_linux_symbol_init() == -1) {
         return -1;

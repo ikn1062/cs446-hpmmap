@@ -24,8 +24,8 @@ static void notrace do_exit_function(unsigned long ip, unsigned long parent_ip, 
 
 static int fh_resolve_hook_address(struct ftrace_hook *hook)
 {
-    err = kallsyms_lookup_name_fn(hook->name, &hook->address);
-    if (err < -1) {
+    hook->address = kallsyms_lookup_name_fn(hook->name);
+    if (hook->address == 0) {
         return ENOENT;
     }
 
