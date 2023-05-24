@@ -38,13 +38,15 @@ mem_allocate(struct memory_state        * state,
     u64 i           = 0;
     int ret         = 0;
 
+    PrintDebug("mem_allocate start %p end %p", (void *)alloc_reg->start, (void *)alloc_reg->end);
     start       = alloc_reg->start;
     start       = ALIGN(start, page_size);
+    PrintDebug("mem_allocate alligned start %p", (void *)start);
 
     len         = alloc_reg->end - start;
-    PrintDebug("mem_allocate start unalligned len: %llu", len);
+    PrintDebug("mem_allocate unalligned len: %llu", len);
     len         = ALIGN(len, page_size);
-    PrintDebug("mem_allocate start alligned len: %llu", len);
+    PrintDebug("mem_allocate alligned len: %llu", len);
 
     num_pages   = len       / page_size;
     PrintDebug("mem_allocate num_pages %llu page size %llu", num_pages, page_size);

@@ -419,7 +419,6 @@ static int
 do_hpmmap_brk(struct memory_state * state, 
               uintptr_t             newbrk) 
 {
-    PrintDebug("do_hpmmap_brk from (%p) to (%p)\n", (void *)state->brk_state, (void *)newbrk);
     struct brk_state           * brk_state = state->brk_state;
     struct allocated_vaddr_reg * alloc_reg = brk_state->last;
     struct paddr_reg           * paddr_reg = NULL;
@@ -427,7 +426,7 @@ do_hpmmap_brk(struct memory_state * state,
     
     vaddr_from = (alloc_reg) ? alloc_reg->end : brk_state->brk_base;
 
-    PrintDebug("do_hpmmap_brk vaddr_from: (%p)\n", (void *)vaddr_from);
+    PrintDebug("do_hpmmap_brk from (%p) to (%p)\n", (void *)vaddr_from, (void *)newbrk);
     /* Determine if everything is already mapped */
     if (vaddr_from >= newbrk) {
         return 0;
@@ -499,7 +498,9 @@ __hpmmap_brk(struct memory_state * state,
         return brk_state->brk;
     }
 
+    PrintDebug("new_brk size init: %p\n", (void *)brk);
     newbrk = ALIGN(brk, BRK_PAGE_SIZE);
+    PrintDebug("new_brk size alligned: %p\n", (void *)newbrk);
     oldbrk = ALIGN(brk_state->brk, BRK_PAGE_SIZE);
 
     if (newbrk == oldbrk) {
