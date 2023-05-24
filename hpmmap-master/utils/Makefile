@@ -1,4 +1,4 @@
-CC=gcc
+CC=gcc -DDEBUG -g 
 
 all: mem_ctrl launcher
 

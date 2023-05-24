@@ -250,7 +250,7 @@ init_hpmmap_probes(void)
         symbol_addr = kallsyms_lookup_name("copy_process");
 
         if (symbol_addr == 0) {
-            symbol_addr = kallsyms_lookup_name("copy_process.part.25");
+            symbol_addr = kallsyms_lookup_name("copy_process.part.35");
 
             if (symbol_addr == 0) {
                 PrintError("Could not find copy_process symbol address\n");
