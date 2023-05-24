@@ -427,14 +427,14 @@ do_hpmmap_brk(struct memory_state * state,
     
     vaddr_from = (alloc_reg) ? alloc_reg->end : brk_state->brk_base;
 
-    PrintDebug("do_hpmmap_brk vaddr_from: (%p)" (void *)vaddr_from);
+    PrintDebug("do_hpmmap_brk vaddr_from: (%p)\n", (void *)vaddr_from);
     /* Determine if everything is already mapped */
     if (vaddr_from >= newbrk) {
         return 0;
     }
 
     /* Need to allocate more memory */
-    PrintDebug("do_hpmmap_brk Finding memory to allocate");
+    PrintDebug("do_hpmmap_brk Finding memory to allocate\n");
     alloc_reg           = (struct allocated_vaddr_reg *) kmalloc(sizeof(struct allocated_vaddr_reg), GFP_KERNEL);
     alloc_reg->start    = vaddr_from;
     alloc_reg->end      = newbrk;
@@ -443,7 +443,7 @@ do_hpmmap_brk(struct memory_state * state,
     /* Save the page prot */
     alloc_reg->pg_prot  = HPMMAP_PAGE_PROT;
 
-    PrintDebug("do_hpmmap_brk Allocate memory");
+    PrintDebug("do_hpmmap_brk Allocate memory\n");
     /* Allocate memory */
     {
         int status = mem_allocate(state, alloc_reg, BRK_PAGE_SIZE, &paddr_reg);
@@ -455,7 +455,7 @@ do_hpmmap_brk(struct memory_state * state,
         }
     }
 
-    PrintDebug("do_hpmmap_brk save and return");
+    PrintDebug("do_hpmmap_brk save and return\n");
     /* Save paddr reg */
     alloc_reg->phys_reg = paddr_reg; 
 
@@ -548,7 +548,6 @@ hpmmap_brk(unsigned long brk)
 
     if (!state) {
         /* HPMMAP not enabled for this process, using default brk implementation */
-        PrintDebug("original brk called for process\n");
         return original_brk(brk);
     } 
 
