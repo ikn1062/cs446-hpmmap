@@ -37,9 +37,13 @@ mem_allocate(struct memory_state        * state,
     u64 len         = 0;
     u64 i           = 0;
     int ret         = 0;
-
+    u64 end = 0;
+    
     PrintDebug("mem_allocate start %p end %p", (void *)alloc_reg->start, (void *)alloc_reg->end);
+    PrintDebug("mem_allocate size start %llu end %llu", (u64)alloc_reg->start, (u64)alloc_reg->end);
     start       = alloc_reg->start;
+    end     = alloc_reg->end;
+    PrintDebug("mem_allocate size 1 start %llu end %llu", start, end);
     start       = ALIGN(start, page_size);
     PrintDebug("mem_allocate alligned start %p", (void *)start);
 
