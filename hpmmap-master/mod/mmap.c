@@ -600,7 +600,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
     /* Try to find allocated space that is not yet in use - this will only work if
      * we're using large pages
      */
-    PrintDebug("Hpmmap-private find allocated space", addr);
+    PrintDebug("Hpmmap-private find allocated space: %lu", addr);
     if (find_allocated_space(len, mmap_state, &virtual_region)) {
         /* Save the mmap info */
         virtual_region->mmap_flags = flags;
@@ -649,14 +649,14 @@ do_hpmmap_mmap_private(struct memory_state * state,
     allocated_region->phys_reg = physical_region;
 
 out:
-    PrintDebug("hpmmap_private - Copy files into memory using (%p)", (void *)vaddr);
     /* Copy file into memory content */
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
+        PrintDebug("hpmmap_private kernel read - file vaddr: (%p), len: (%d), pos: (%p)", (void *)vaddr, len, (void *)&pos);
         kernel_read(file, (void *)vaddr, len, &pos);
     }
-
+    PrintDebug("hpmmap_private - Kernel Read Complete (%p)", (void *)vaddr);
     return (unsigned long)vaddr;
 
  unmap:
