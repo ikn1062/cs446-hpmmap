@@ -1,6 +1,6 @@
 CC=gcc -DDEBUG -g 
 
-all: mem_ctrl launcher
+all: mem_ctrl launcher launcher_mpi
 
 mem_ctrl: mem_ctrl.c pet_mem.c ../interface.h
 	$(CC) mem_ctrl.c pet_mem.c -o mem_ctrl
@@ -8,5 +8,8 @@ mem_ctrl: mem_ctrl.c pet_mem.c ../interface.h
 launcher: launcher.c ../interface.h
 	$(CC) launcher.c -o launcher -lnuma
 
+launcher_mpi: launcher_mpi.c ../interface.h
+	$(CC) launcher_mpi.c -o launcher_mpi -lnuma
+
 clean:	
-	-rm mem_ctrl launcher
+	-rm mem_ctrl launcher launcher_mpi
