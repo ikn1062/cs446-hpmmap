@@ -574,7 +574,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
      * user is seemingly grabbing meaningless address and mapping FIXEd there,
      * which is not something we can handle
      */
-    printDebug("Hpmmap private call at %lu", addr);
+    PrintDebug("Hpmmap private call at %lu", addr);
     if (addr) {
         virtual_region = find_vaddr_reg(addr, addr + len, mmap_state);
 
