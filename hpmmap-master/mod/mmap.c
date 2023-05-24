@@ -419,7 +419,7 @@ static int
 do_hpmmap_brk(struct memory_state * state, 
               uintptr_t             newbrk) 
 {
-    PrintDebug("do hpmmap brk from (%p) to (%p)\n", (void *)state->brk_state, (void *)newbrk);
+    PrintDebug("do_hpmmap_brk from (%p) to (%p)\n", (void *)state->brk_state, (void *)newbrk);
     struct brk_state           * brk_state = state->brk_state;
     struct allocated_vaddr_reg * alloc_reg = brk_state->last;
     struct paddr_reg           * paddr_reg = NULL;
@@ -427,12 +427,14 @@ do_hpmmap_brk(struct memory_state * state,
     
     vaddr_from = (alloc_reg) ? alloc_reg->end : brk_state->brk_base;
 
+    PrintDebug("do_hpmmap_brk vaddr_from: (%p)" (void *)vaddr_from);
     /* Determine if everything is already mapped */
     if (vaddr_from >= newbrk) {
         return 0;
     }
 
     /* Need to allocate more memory */
+    PrintDebug("do_hpmmap_brk Finding memory to allocate");
     alloc_reg           = (struct allocated_vaddr_reg *) kmalloc(sizeof(struct allocated_vaddr_reg), GFP_KERNEL);
     alloc_reg->start    = vaddr_from;
     alloc_reg->end      = newbrk;
@@ -441,6 +443,7 @@ do_hpmmap_brk(struct memory_state * state,
     /* Save the page prot */
     alloc_reg->pg_prot  = HPMMAP_PAGE_PROT;
 
+    PrintDebug("do_hpmmap_brk Allocate memory");
     /* Allocate memory */
     {
         int status = mem_allocate(state, alloc_reg, BRK_PAGE_SIZE, &paddr_reg);
@@ -452,6 +455,7 @@ do_hpmmap_brk(struct memory_state * state,
         }
     }
 
+    PrintDebug("do_hpmmap_brk save and return");
     /* Save paddr reg */
     alloc_reg->phys_reg = paddr_reg; 
 
