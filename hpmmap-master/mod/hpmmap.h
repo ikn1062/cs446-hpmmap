@@ -37,7 +37,7 @@
 //#define MMAP_PREALLOCATE (1LL << 30)
 
 /* Enable debugging output in the kernel logs (dmesg) by uncommenting this line */
-// #define DEBUG
+#define DEBUG
 
 /* Maximum sizes for anonymous mmap region */
 /* 128 GB for mmap */

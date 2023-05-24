@@ -419,6 +419,7 @@ static int
 do_hpmmap_brk(struct memory_state * state, 
               uintptr_t             newbrk) 
 {
+    PrintDebug("do hpmmap brk from (%p) to (%p)\n", (void *)state->brk_state, (void *)newbrk);
     struct brk_state           * brk_state = state->brk_state;
     struct allocated_vaddr_reg * alloc_reg = brk_state->last;
     struct paddr_reg           * paddr_reg = NULL;
@@ -490,6 +491,7 @@ __hpmmap_brk(struct memory_state * state,
 
 
     if (brk < brk_state->brk_base) {
+        PrintDebug("brk < brk_state->brk_base\n");
         return brk_state->brk;
     }
 
@@ -497,12 +499,14 @@ __hpmmap_brk(struct memory_state * state,
     oldbrk = ALIGN(brk_state->brk, BRK_PAGE_SIZE);
 
     if (newbrk == oldbrk) {
+        PrintDebug("newbrk = oldbrk\n");
         brk_state->brk = brk;
         return brk_state->brk;
     }
 
     if (brk <= brk_state->brk) {
         /* Free pages */
+        PrintDebug("Free pages\n");
         if (free_brk(state, (uintptr_t)newbrk) == 0) {
             brk_state->brk = brk;
         }
@@ -540,6 +544,7 @@ hpmmap_brk(unsigned long brk)
 
     if (!state) {
         /* HPMMAP not enabled for this process, using default brk implementation */
+        PrintDebug("original brk called for process\n");
         return original_brk(brk);
     } 
 
