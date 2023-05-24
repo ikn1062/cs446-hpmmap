@@ -47,7 +47,7 @@ mem_allocate(struct memory_state        * state,
     PrintDebug("mem_allocate start alligned len: %llu", len);
 
     num_pages   = len       / page_size;
-    PrintDebug("mem_allocate num_pages %llu page size %llu", len, page_size);
+    PrintDebug("mem_allocate num_pages %llu page size %llu", num_pages, page_size);
     alloc_pages = page_size / PAGE_SIZE_4KB;
 
     vaddr       = (uintptr_t)start;
@@ -57,7 +57,9 @@ mem_allocate(struct memory_state        * state,
     if (reg) {
         PrintDebug("mem_allocate allocate phys_reg\n");
         phys_reg            = (struct paddr_reg    *)kmalloc(sizeof(struct paddr_reg),                 GFP_KERNEL);
+        PrintDebug("mem_allocate allocate phys_reg - page list\n");
         phys_reg->page_list = (struct mapped_page **)kmalloc(sizeof(struct mapped_page *) * num_pages, GFP_KERNEL);
+        PrintDebug("mem_allocate allocate set num pages - page list\n");
         phys_reg->num_pages = num_pages;
 
         PrintDebug("mem_allocate allocate phys_reg for num pages\n");
