@@ -574,6 +574,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
      * user is seemingly grabbing meaningless address and mapping FIXEd there,
      * which is not something we can handle
      */
+    printDebug("Hpmmap private call at %lu", addr);
     if (addr) {
         virtual_region = find_vaddr_reg(addr, addr + len, mmap_state);
 
@@ -599,6 +600,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
     /* Try to find allocated space that is not yet in use - this will only work if
      * we're using large pages
      */
+    printDebug("Hpmmap-private find allocated space", addr);
     if (find_allocated_space(len, mmap_state, &virtual_region)) {
         /* Save the mmap info */
         virtual_region->mmap_flags = flags;
@@ -647,6 +649,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
     allocated_region->phys_reg = physical_region;
 
 out:
+    printDebug("hpmmap_private - Copy files into memory using (%p)", (void *)vaddr);
     /* Copy file into memory content */
     if (!(flags & MAP_ANONYMOUS)) 
     {
@@ -761,7 +764,7 @@ do_hpmmap_mmap_anon(struct memory_state * state,
         ret = do_hpmmap_mmap_private(state, file, addr, len, prot, fd, flags, pgoff);
     }
 #endif
-
+    PrintDebug("hpmmap_anon - call to mmap private %lu\n", addr);
     ret = do_hpmmap_mmap_private(state, NULL, addr, len, prot, -1, flags, 0);
 
     switch (ret) {
@@ -812,8 +815,10 @@ __hpmmap_mmap_pgoff(struct memory_state * state,
     }
 
     if (flags & MAP_ANONYMOUS) {
+        PrintDebug("Using HPMMAP - mmap anon %d\n", current->pid);
         ret = do_hpmmap_mmap_anon(state, addr, len, prot, flags);
     } else {
+        PrintDebug("Using HPMMAP - mmap file %d\n", current->pid);
         ret = do_hpmmap_mmap_file(state, addr, len, prot, fd, flags, pgoff);
     }
 
@@ -891,11 +896,11 @@ hpmmap_mmap(unsigned long addr,
     {
 
         if (flags & MAP_FIXED) {
-/*
+
             PrintError("Process trying to map a fixed address outside of the HPMMAP"
                " range. We need to let this go and hope Linux can handle it without"
                " anything breaking...\n");
-*/
+
 
             return original_mmap(addr, len, prot, flags, fd, offset);
         }
