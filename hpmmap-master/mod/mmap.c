@@ -653,7 +653,7 @@ out:
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
-        PrintDebug("hpmmap_private kernel read - file vaddr: (%p), len: (%d), pos: (%p)", (void *)vaddr, len, (void *)&pos);
+        PrintDebug("hpmmap_private kernel read - file vaddr: (%p), len: (%lu), pos: (%lx)", (void *)vaddr, len, &pos);
         kernel_read(file, (void *)vaddr, len, &pos);
     }
     PrintDebug("hpmmap_private - Kernel Read Complete (%p)", (void *)vaddr);
