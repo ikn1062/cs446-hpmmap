@@ -1736,7 +1736,6 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
     u64 prev_end  = 0;
 
     list_for_each_entry(alloc_iter, &(state->alloc_list), node) {
-
         if ((alloc) && (alloc_iter != alloc)) {
             continue;
         }
@@ -1745,6 +1744,11 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         prev_end = alloc_iter->start;
 
         list_for_each_entry(vaddr_iter, &(alloc_iter->vaddr_list), node) {
+            
+            PrintDebug("find_allocated_space_fixed - new_reg start: (%p)\n", (void *)prev_end);
+            PrintDebug("find_allocated_space_fixed - vaddr_start: (%p)\n", (void *)(vaddr_iter->start));
+            PrintDebug("find_allocated_space_fixed - Free space: (%p)\n", (void *)(vaddr_iter->start - prev_end));
+            PrintDebug("find_allocated_space_fixed - new_reg end: (%p)\n", (void *)(prev_end+len));
 
             free_size = vaddr_iter->start - prev_end;
 
@@ -1770,6 +1774,11 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         }
 
         /* Room at end? */
+        PrintDebug("find_allocated_space_fixed - new_reg start: (%p)\n", (void *)prev_end);
+        PrintDebug("find_allocated_space_fixed - alloc_iter->end: (%p)\n", (void *)(alloc_iter->end));
+        PrintDebug("find_allocated_space_fixed - Free space: (%p)\n", (void *)(alloc_iter->end - prev_end));
+        PrintDebug("find_allocated_space_fixed - new_reg end: (%p)\n", (void *)(prev_end+len));
+
         free_size = alloc_iter->end - prev_end;
 
         if (free_size >= len) {
@@ -1793,6 +1802,7 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         }
     }
 
+    PrintDebug("Find allocated space fix - return NULL \n");
     *reg = NULL;
 
     return 0;
