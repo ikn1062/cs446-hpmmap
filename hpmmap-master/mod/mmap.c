@@ -195,8 +195,8 @@ init_mmap_state(struct memory_state * state)
     INIT_LIST_HEAD(&(mmap->free_list));
     INIT_LIST_HEAD(&(mmap->alloc_list));
     
-    PrintDebug("MMAP Region Base: (%p)", (void *)MMAP_REGION_START);
-    PrintDebug("MMAP Region Max: (%p)", (void *)MMAP_REGION_END);
+    PrintDebug("MMAP Region Base: (%016lx)", (void *)MMAP_REGION_START);
+    PrintDebug("MMAP Region Max: (%016lx)", (void *)MMAP_REGION_END);
 
     /* Add whole vspace region to list */
     create_free_space(mmap->mmap_base, mmap->mmap_max, mmap, 0);
@@ -354,7 +354,7 @@ free_brk(struct memory_state * state,
     struct allocated_vaddr_reg * alloc_iter = NULL;
     struct allocated_vaddr_reg * prev       = NULL;
 
-    PrintDebug("Freeing brk from (%p) to (%p)\n", 
+    PrintDebug("Freeing brk from (%016lx) to (%016lx)\n", 
            (void *)newbrk, (void *)brk_state->brk);
     
     list_for_each_entry_safe_reverse(alloc_iter, prev, &(brk_state->alloc_list), node) {
@@ -483,7 +483,7 @@ __hpmmap_brk(struct memory_state * state,
     }
 
     PrintDebug("Using HPMMAP for process %d\n", current->pid);
-    PrintDebug("Start_brk: %p, Current brk: %p, Requested brk: %p\n", 
+    PrintDebug("Start_brk: %016lx, Current brk: %016lx, Requested brk: %016lx\n", 
            (void *)brk_state->brk_base, (void *)brk_state->brk, (void *)brk);
 
 
@@ -617,7 +617,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
         goto out;
     }
 
-    PrintDebug("Create Allocated Space(%p)", (void *)vaddr);
+    PrintDebug("Create Allocated Space(%016lx)", (void *)vaddr);
     /* Need to allocate more memory */
     if (!create_allocated_space(alloc_len, page_size, mmap_state, &allocated_region)) {
         /* Out of virtual memory - not good */
@@ -627,7 +627,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
 
     /* Save the page prot */
     allocated_region->pg_prot = (HPMMAP_PAGE_PROT | prot);
-    PrintDebug("Find Allocated Space - Fixed(%p)", (void *)vaddr);
+    PrintDebug("Find Allocated Space - Fixed(%016lx)", (void *)vaddr);
     if (!find_allocated_space_fixed(allocated_region, len, mmap_state, &virtual_region)) {
         /* If these functions work, this is impossible */
         PrintError("Virtual memory management functions are broken!\n");
@@ -657,10 +657,10 @@ out:
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
-        PrintDebug("hpmmap_private kernel read - file vaddr: (%p), len: (%lu), pos: (%llx), pg_off: (%lx)", (void *)vaddr, len, pos, pgoff);
+        PrintDebug("hpmmap_private kernel read - file vaddr: (%016lx), len: (%lu), pos: (%llx), pg_off: (%lx)", (void *)vaddr, len, pos, pgoff);
         kernel_read(file, (void *)vaddr, len, &pos);
     }
-    PrintDebug("hpmmap_private - Kernel Read Complete (%p)", (void *)vaddr);
+    PrintDebug("hpmmap_private - Kernel Read Complete (%016lx)", (void *)vaddr);
     return (unsigned long)vaddr;
 
  unmap:
@@ -783,10 +783,9 @@ do_hpmmap_mmap_anon(struct memory_state * state,
     }
 
     dump_vspace(state);
-    PrintDebug("do-hpmmap-mmap-anon memset test: %p, len: 10", (void *)ret);
-    unsigned long len1 = 10;
-    memset((void *)ret, 0, len1);
-    PrintDebug("do-hpmmap-mmap-anon memset ret: %p, len: %lu", (void *)ret, len);
+    PrintDebug("do-hpmmap-mmap-anon memset test: %016lx, len: 10", (void *)ret);
+    memset((void *)ret, 0, 10);
+    PrintDebug("do-hpmmap-mmap-anon memset ret: %016lx, len: %lu", (void *)ret, len);
     memset((void *)ret, 0, len);
     PrintDebug("do-hpmmap-mmap-anon return: %lu", addr);
     return ret;
@@ -987,7 +986,7 @@ do_hpmmap_munmap(struct memory_state * state,
     unsigned long                mmap_fd          = 0;
     int                          ret              = 0;
 
-    PrintDebug("munmap(%p, %lu)\n", (void *)addr, len);
+    PrintDebug("munmap(%016lx, %lu)\n", (void *)addr, len);
     len = PAGE_ALIGN_4KB(len);
 
     if ((virtual_region = find_vaddr_reg(addr, addr + len, mmap_state)) == NULL) {
@@ -1747,16 +1746,16 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         /* Room at beginning? */
         prev_end = alloc_iter->start;
 
-        if list_empty(&(alloc_iter->vaddr_list)) {
-            PrintDebug("Empty vaddr_list in allocated region, start: (%p)\n", (void *)prev_end);
+        if (list_empty(&(alloc_iter->vaddr_list))) {
+            PrintDebug("Empty vaddr_list in allocated region, start: (%016lx)\n", (void *)prev_end);
         }
 
         list_for_each_entry(vaddr_iter, &(alloc_iter->vaddr_list), node) {
             
-            PrintDebug("find_allocated_space_fixed - new_reg start: (%p)\n", (void *)prev_end);
-            PrintDebug("find_allocated_space_fixed - vaddr_start: (%p)\n", (void *)(vaddr_iter->start));
-            PrintDebug("find_allocated_space_fixed - Free space: (%p)\n", (void *)(vaddr_iter->start - prev_end));
-            PrintDebug("find_allocated_space_fixed - new_reg end: (%p)\n", (void *)(prev_end+len));
+            PrintDebug("find_allocated_space_fixed - new_reg start: (%016lx)\n", (void *)prev_end);
+            PrintDebug("find_allocated_space_fixed - vaddr_start: (%016lx)\n", (void *)(vaddr_iter->start));
+            PrintDebug("find_allocated_space_fixed - Free space: (%016lx)\n", (void *)(vaddr_iter->start - prev_end));
+            PrintDebug("find_allocated_space_fixed - new_reg end: (%016lx)\n", (void *)(prev_end+len));
 
             free_size = vaddr_iter->start - prev_end;
 
@@ -1782,10 +1781,10 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         }
 
         /* Room at end? */
-        PrintDebug("find_allocated_space_fixed - new_reg start: (%p)\n", (void *)prev_end);
-        PrintDebug("find_allocated_space_fixed - alloc_iter->end: (%p)\n", (void *)(alloc_iter->end));
-        PrintDebug("find_allocated_space_fixed - Free space: (%p)\n", (void *)(alloc_iter->end - prev_end));
-        PrintDebug("find_allocated_space_fixed - new_reg end: (%p)\n", (void *)(prev_end+len));
+        PrintDebug("find_allocated_space_fixed - new_reg start: (%016lx)\n", (void *)prev_end);
+        PrintDebug("find_allocated_space_fixed - alloc_iter->end: (%016lx)\n", (void *)(alloc_iter->end));
+        PrintDebug("find_allocated_space_fixed - Free space: (%016lx)\n", (void *)(alloc_iter->end - prev_end));
+        PrintDebug("find_allocated_space_fixed - new_reg end: (%016lx)\n", (void *)(prev_end+len));
 
         free_size = alloc_iter->end - prev_end;
 
@@ -1841,8 +1840,8 @@ create_allocated_space(u64                           len,
         /*
          * This is going to be an allocated region, so it needs to be aligned
          */
-        PrintDebug("Create-allocated-space Free_iter->start: (%p) \n", (void *)free_iter->start);
-        PrintDebug("Create-allocated-space Free_iter->end: (%p) \n", (void *)free_iter->end);
+        PrintDebug("Create-allocated-space Free_iter->start: (%016lx) \n", (void *)free_iter->start);
+        PrintDebug("Create-allocated-space Free_iter->end: (%016lx) \n", (void *)free_iter->end);
 
         free_size = free_iter->end - ALIGN(free_iter->start, alignment);
 
@@ -2245,7 +2244,7 @@ dump_mmap_params(unsigned long addr,
     char * flag_str = flags_to_str(flags);
 
     PrintDebug("mmap params:\n");
-    PrintDebug("    addr:  %p\n",       (void *)addr);
+    PrintDebug("    addr:  %016lx\n",       (void *)addr);
     PrintDebug("    len:   %lu\n",      len);
     PrintDebug("    prot:  %lu (%s)\n", prot, prot_str);
     PrintDebug("    flags: %lu (%s)\n", flags, flag_str);
@@ -2271,16 +2270,16 @@ dump_vspace(struct memory_state * mem_state)
     struct mmap_state          * mmap_state = mem_state->mmap_state;
 
     PrintDebug("brk state: \n");
-    PrintDebug("    brk_base:  %p\n", (void *)brk_state->brk_base);
-    PrintDebug("    brk:       %p\n", (void *)brk_state->brk);
+    PrintDebug("    brk_base:  %016lx\n", (void *)brk_state->brk_base);
+    PrintDebug("    brk:       %016lx\n", (void *)brk_state->brk);
 
     if (!list_empty(&(brk_state->alloc_list))) {
 
         PrintDebug("Alloc list: \n");
 
         list_for_each_entry(alloc_iter, &(brk_state->alloc_list), node) {
-            PrintDebug("\tStart:     %p\n", (void *)alloc_iter->start);
-            PrintDebug("\tEnd:       %p\n", (void *)alloc_iter->end);
+            PrintDebug("\tStart:     %016lx\n", (void *)alloc_iter->start);
+            PrintDebug("\tEnd:       %016lx\n", (void *)alloc_iter->end);
             PrintDebug("\tPolicy:    %s\n",  mem_policy_to_str(alloc_iter->policy));
         }
     }
@@ -2293,8 +2292,8 @@ dump_vspace(struct memory_state * mem_state)
         PrintDebug("Free list: \n");
 
         list_for_each_entry(vaddr_iter, &(mmap_state->free_list), node) {
-            PrintDebug("\tStart:     %p\n", (void *)vaddr_iter->start);
-            PrintDebug("\tEnd:       %p\n", (void *)vaddr_iter->end);
+            PrintDebug("\tStart:     %016lx\n", (void *)vaddr_iter->start);
+            PrintDebug("\tEnd:       %016lx\n", (void *)vaddr_iter->end);
             PrintDebug("\n");
         }
     }
@@ -2304,16 +2303,16 @@ dump_vspace(struct memory_state * mem_state)
         PrintDebug("Alloc list: \n");
 
         list_for_each_entry(alloc_iter, &(mmap_state->alloc_list), node) {
-            PrintDebug("\tStart:     %p\n", (void *)alloc_iter->start);
-            PrintDebug("\tEnd:       %p\n", (void *)alloc_iter->end);
+            PrintDebug("\tStart:     %016lx\n", (void *)alloc_iter->start);
+            PrintDebug("\tEnd:       %016lx\n", (void *)alloc_iter->end);
             PrintDebug("\tPolicy:    %s\n",  mem_policy_to_str(alloc_iter->policy));
             PrintDebug("\n");
 
             PrintDebug("\tMappings: \n");
 
             list_for_each_entry(vaddr_iter, &(alloc_iter->vaddr_list), node) {
-                PrintDebug("\t\tStart:     %p\n", (void *)vaddr_iter->start);
-                PrintDebug("\t\tEnd:       %p\n", (void *)vaddr_iter->end);
+                PrintDebug("\t\tStart:     %016lx\n", (void *)vaddr_iter->start);
+                PrintDebug("\t\tEnd:       %016lx\n", (void *)vaddr_iter->end);
                 PrintDebug("\n");
             }
         }
