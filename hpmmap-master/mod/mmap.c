@@ -614,6 +614,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
         goto out;
     }
 
+    PrintDebug("Create Allocated Space(%p)", (void *)vaddr);
     /* Need to allocate more memory */
     if (!create_allocated_space(alloc_len, page_size, mmap_state, &allocated_region)) {
         /* Out of virtual memory - not good */
@@ -623,7 +624,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
 
     /* Save the page prot */
     allocated_region->pg_prot = (HPMMAP_PAGE_PROT | prot);
-
+    PrintDebug("Find Allocated Space - Fixed(%p)", (void *)vaddr);
     if (!find_allocated_space_fixed(allocated_region, len, mmap_state, &virtual_region)) {
         /* If these functions work, this is impossible */
         PrintError("Virtual memory management functions are broken!\n");
@@ -708,6 +709,7 @@ do_hpmmap_mmap_file(struct memory_state * state,
 #endif
 
     ret = do_hpmmap_mmap_private(state, file, addr, len, prot, fd, flags, pgoff);
+    PrintDebug("do-hpmmap-mmap-file complete hpmmap-private call: %lu", addr);
 
     switch (ret) {
         case -ENOMEM:
@@ -766,6 +768,7 @@ do_hpmmap_mmap_anon(struct memory_state * state,
 #endif
     PrintDebug("hpmmap_anon - call to mmap private %lu\n", addr);
     ret = do_hpmmap_mmap_private(state, NULL, addr, len, prot, -1, flags, 0);
+    PrintDebug("do-hpmmap-mmap-anon complete hpmmap-private call: %lu", addr);
 
     switch (ret) {
         case -ENOMEM:
@@ -777,6 +780,7 @@ do_hpmmap_mmap_anon(struct memory_state * state,
     }
 
     memset((void *)ret, 0, len);
+    PrintDebug("do-hpmmap-mmap-anon return: %lu", addr);
     return ret;
 }
 
