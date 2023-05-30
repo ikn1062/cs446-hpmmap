@@ -18,7 +18,7 @@
 # There may be other macros in mdb.c of interest. You should
 # read mdb.c before changing any of them.
 #
-CC	= gcc
+CC	= gcc -static
 AR	= ar
 W	= -W -Wall -Wno-unused-parameter -Wbad-function-cast -Wuninitialized
 THREADS = -pthread
@@ -38,7 +38,7 @@ mandir = $(datarootdir)/man
 ########################################################################
 
 IHDRS	= lmdb.h
-ILIBS	= liblmdb.a liblmdb$(SOEXT)
+ILIBS	= liblmdb.a #liblmdb$(SOEXT)
 IPROGS	= mdb_stat mdb_copy mdb_dump mdb_load mdb_drop
 IDOCS	= mdb_stat.1 mdb_copy.1 mdb_dump.1 mdb_load.1 mdb_drop.1
 PROGS	= $(IPROGS) mtest mtest2 mtest3 mtest4 mtest5
@@ -66,7 +66,7 @@ liblmdb.a:	mdb.o midl.o
 
 liblmdb$(SOEXT):	mdb.lo midl.lo
 #	$(CC) $(LDFLAGS) -pthread -shared -Wl,-Bsymbolic -o $@ mdb.o midl.o $(SOLIBS)
-	$(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.lo midl.lo $(SOLIBS)
+# 	$(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.lo midl.lo $(SOLIBS)
 
 mdb_stat: mdb_stat.o liblmdb.a
 mdb_copy: mdb_copy.o liblmdb.a
