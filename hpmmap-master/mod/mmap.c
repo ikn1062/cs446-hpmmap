@@ -779,6 +779,9 @@ do_hpmmap_mmap_anon(struct memory_state * state,
             break;
     }
 
+    PrintDebug("do-hpmmap-mmap-anon memset test: %p, len: %lu", (void *)ret, len);
+    unsigned long len1 = 100;
+    memset((void *)ret, 0, len1);
     PrintDebug("do-hpmmap-mmap-anon memset ret: %p, len: %lu", (void *)ret, len);
     memset((void *)ret, 0, len);
     PrintDebug("do-hpmmap-mmap-anon return: %lu", addr);
