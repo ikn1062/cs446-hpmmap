@@ -779,7 +779,7 @@ do_hpmmap_mmap_anon(struct memory_state * state,
             break;
     }
 
-    PrintDebug("do-hpmmap-mmap-anon memset ret: %lu, len: %d", read, len);
+    PrintDebug("do-hpmmap-mmap-anon memset ret: %p, len: %lu", (void *)ret, len);
     memset((void *)ret, 0, len);
     PrintDebug("do-hpmmap-mmap-anon return: %lu", addr);
     return ret;
