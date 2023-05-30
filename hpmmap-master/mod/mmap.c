@@ -194,6 +194,9 @@ init_mmap_state(struct memory_state * state)
 
     INIT_LIST_HEAD(&(mmap->free_list));
     INIT_LIST_HEAD(&(mmap->alloc_list));
+    
+    PrintDebug("MMAP Region Base: (%p)", (void *)MMAP_REGION_START);
+    PrintDebug("MMAP Region Max: (%p)", (void *)MMAP_REGION_END);
 
     /* Add whole vspace region to list */
     create_free_space(mmap->mmap_base, mmap->mmap_max, mmap, 0);
@@ -779,8 +782,9 @@ do_hpmmap_mmap_anon(struct memory_state * state,
             break;
     }
 
-    PrintDebug("do-hpmmap-mmap-anon memset test: %p, len: %lu", (void *)ret, len);
-    unsigned long len1 = 100;
+    dump_vspace(state);
+    PrintDebug("do-hpmmap-mmap-anon memset test: %p, len: 10", (void *)ret);
+    unsigned long len1 = 10;
     memset((void *)ret, 0, len1);
     PrintDebug("do-hpmmap-mmap-anon memset ret: %p, len: %lu", (void *)ret, len);
     memset((void *)ret, 0, len);
@@ -1743,6 +1747,10 @@ find_allocated_space_fixed(struct allocated_vaddr_reg * alloc,
         /* Room at beginning? */
         prev_end = alloc_iter->start;
 
+        if list_empty(&(alloc_iter->vaddr_list)) {
+            PrintDebug("Empty vaddr_list in allocated region, start: (%p)\n", (void *)prev_end);
+        }
+
         list_for_each_entry(vaddr_iter, &(alloc_iter->vaddr_list), node) {
             
             PrintDebug("find_allocated_space_fixed - new_reg start: (%p)\n", (void *)prev_end);
@@ -1833,6 +1841,9 @@ create_allocated_space(u64                           len,
         /*
          * This is going to be an allocated region, so it needs to be aligned
          */
+        PrintDebug("Create-allocated-space Free_iter->start: (%p) \n", (void *)free_iter->start);
+        PrintDebug("Create-allocated-space Free_iter->end: (%p) \n", (void *)free_iter->end);
+
         free_size = free_iter->end - ALIGN(free_iter->start, alignment);
 
         if (free_size >= len) {
@@ -1846,6 +1857,7 @@ create_allocated_space(u64                           len,
             reg->end     = reg->start + len;
             reg->policy  = MEM_NONE;
 
+            PrintDebug("Create vaddr_list node head for alloc\n");
             INIT_LIST_HEAD(&(reg->vaddr_list));
 
             /* 
