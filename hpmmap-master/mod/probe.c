@@ -22,6 +22,10 @@ static struct kprobe    get_user_pages_probe;
 static struct kprobe    __get_user_pages_probe;
 static struct kprobe    get_user_pages_fast_probe;
 static struct kprobe    __get_user_pages_fast_probe;
+static struct kprobe    get_user_pages_locked_probe;
+static struct kprobe    __get_user_pages_locked_probe;
+static struct kprobe    get_user_pages_unlocked_probe;
+static struct kprobe    get_user_pages_longterm_probe;
 
 /* copy_process_probe private data */
 struct hpmmap_probe_data {
@@ -140,6 +144,49 @@ __hpmmap_get_user_pages_fast_fn(unsigned long    start,
     return hpmmap_get_user_pages(current->pid, start, nr_pages, pages, NULL, 0);
 }
 
+static long
+hpmmap_get_user_pages_locked_fn(unsigned long    start,
+                                unsigned long    nr_pages,
+                                unsigned int     gup_flags,
+                                struct page   ** pages,
+                                int            * locked)
+{
+    return hpmmap_get_user_pages(current->pid, start, nr_pages, pages, NULL, 0); // FIX
+}
+
+static long
+__hpmmap_get_user_pages_locked_fn(struct task_struct     * tsk,
+                                  struct mm_struct       * mm,
+                                  unsigned long            start,
+                                  unsigned long            nr_pages,
+                                  struct page           ** pages,
+                                  struct vm_area_struct ** vmas,
+                                  int                    * locked,
+                                  unsigned int             flags)
+{
+    return hpmmap_get_user_pages(current->pid, start, nr_pages, pages, NULL, 0); // FIX
+}
+
+static long
+hpmmap_get_user_pages_unlocked_fn(unsigned long    start,
+                                  unsigned long    nr_pages,
+                                  struct page   ** pages,
+                                  unsigned int     gup_flags)
+
+{
+    return hpmmap_get_user_pages(current->pid, start, nr_pages, pages, NULL, 0); // FIX
+}
+
+static long
+hpmmap_get_user_pages_longterm_fn(unsigned long            start,
+                                  unsigned long            nr_pages,
+                                  unsigned int             gup_flags,
+                                  struct page   **         pages,
+                                  struct vm_area_struct ** vmas)
+
+{
+    return hpmmap_get_user_pages(current->pid, start, nr_pages, pages, NULL, 0); // FIX
+}
 
 static int
 hpmmap_get_user_pages_probe(struct kprobe  * kp,
@@ -239,6 +286,38 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
     return 0;
 }
 
+static int
+hpmmap_get_user_pages_locked_probe(struct kprobe  * kp,
+                                     struct pt_regs * regs)
+{
+    PrintDebug("Get User Pages Locked Probe");
+    return 0;
+}
+
+static int
+__hpmmap_get_user_pages_locked_probe(struct kprobe  * kp,
+                                     struct pt_regs * regs)
+{
+    PrintDebug("Get User Pages __Locked Probe");
+    return 0;
+}
+
+static int
+hpmmap_get_user_pages_unlocked_probe(struct kprobe  * kp,
+                                     struct pt_regs * regs)
+{
+    PrintDebug("Get User Pages Unlocked Probe");
+    return 0;
+}
+
+static int
+hpmmap_get_user_pages_longterm_probe(struct kprobe  * kp,
+                                     struct pt_regs * regs)
+{
+    PrintDebug("Get User Pages Longterm Probe");
+    return 0;
+}
+
 static char *cpy_process = "copy_process";
 module_param(cpy_process, charp, 0);
 MODULE_PARM_DESC(cpy_process, "Lookup Name of copy process in kallsyms");
@@ -326,6 +405,47 @@ init_hpmmap_probes(void)
         register_kprobe(&__get_user_pages_fast_probe);
     }
 
+    /* get_user_pages_locked */
+    {
+        memset(&get_user_pages_locked_probe, 0, sizeof(struct kprobe));
+
+        get_user_pages_locked_probe.symbol_name = "get_user_pages_locked";
+        get_user_pages_locked_probe.pre_handler = hpmmap_get_user_pages_locked_probe;
+
+        register_kprobe(&get_user_pages_locked_probe);
+    }
+
+    /* __get_user_pages_locked */
+    {
+        memset(&__get_user_pages_locked_probe, 0, sizeof(struct kprobe));
+
+        __get_user_pages_locked_probe.symbol_name = "__get_user_pages_locked";
+        __get_user_pages_locked_probe.pre_handler = __hpmmap_get_user_pages_locked_probe;
+
+        register_kprobe(&__get_user_pages_locked_probe);
+    }
+
+    /* get_user_pages_unlocked */
+    {
+        memset(&get_user_pages_unlocked_probe, 0, sizeof(struct kprobe));
+
+        get_user_pages_unlocked_probe.symbol_name = "get_user_pages_unlocked";
+        get_user_pages_unlocked_probe.pre_handler = hpmmap_get_user_pages_unlocked_probe;
+
+        register_kprobe(&get_user_pages_unlocked_probe);
+    }
+
+    /* get_user_pages_longterm */
+    {
+        memset(&get_user_pages_longterm_probe, 0, sizeof(struct kprobe));
+
+        get_user_pages_longterm_probe.symbol_name = "get_user_pages_longterm";
+        get_user_pages_longterm_probe.pre_handler = hpmmap_get_user_pages_longterm_probe;
+
+        register_kprobe(&get_user_pages_longterm_probe);
+    }
+
+
     PrintDebug("HPMMAP probes initialized\n");
 
     return 0;
@@ -341,6 +461,10 @@ deinit_hpmmap_probes(void)
     unregister_kprobe(&__get_user_pages_probe);
     unregister_kprobe(&get_user_pages_fast_probe);
     unregister_kprobe(&__get_user_pages_fast_probe);
+    unregister_kprobe(&get_user_pages_locked_probe);
+    unregister_kprobe(&__get_user_pages_locked_probe);
+    unregister_kprobe(&get_user_pages_unlocked_probe);
+    unregister_kprobe(&get_user_pages_longterm_probe);
 
     PrintDebug("HPMMAP probes deinitialized\n");
     return 0;
