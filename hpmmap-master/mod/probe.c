@@ -27,6 +27,10 @@ static struct kprobe    __get_user_pages_locked_probe;
 static struct kprobe    get_user_pages_unlocked_probe;
 static struct kprobe    get_user_pages_longterm_probe;
 
+static struct kprobe    access_process_vm_probe;
+static struct kprobe    handle_mm_fault_probe;
+
+
 /* copy_process_probe private data */
 struct hpmmap_probe_data {
     unsigned long clone_flags;
@@ -201,6 +205,7 @@ hpmmap_get_user_pages_probe(struct kprobe  * kp,
         return 0;
     }
 
+    PrintDebug("Get User Pages Probe");
     ret = hpmmap_check_user_pages(tsk->pid, start, nr_pages);
 
     if (ret == 0) {
@@ -228,6 +233,7 @@ __hpmmap_get_user_pages_probe(struct kprobe  * kp,
         return 0;
     }
 
+    PrintDebug("Get User Pages __ Probe");
     ret = hpmmap_check_user_pages(tsk->pid, start, nr_pages);
 
     if (ret == 0) {
@@ -250,6 +256,7 @@ hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
     unsigned long nr_pages = (unsigned long)regs->si;
     int           ret      = 0;
 
+    PrintDebug("Get User Pages fast Probe");
     ret = hpmmap_check_user_pages(current->pid, start, nr_pages);
 
     if (ret == 0) {
@@ -272,6 +279,7 @@ __hpmmap_get_user_pages_fast_probe(struct kprobe  * kp,
     unsigned long nr_pages = (unsigned long)regs->si;
     int           ret      = 0;
 
+    PrintDebug("Get User Pages __fast Probe");
     ret = hpmmap_check_user_pages(current->pid, start, nr_pages);
 
     if (ret == 0) {
@@ -445,6 +453,26 @@ init_hpmmap_probes(void)
         register_kprobe(&get_user_pages_longterm_probe);
     }
 
+    /* access_process_vm */
+    {
+        memset(&access_process_vm_probe, 0, sizeof(struct kprobe));
+
+        access_process_vm_probe.symbol_name = "access_process_vm";
+        access_process_vm_probe.pre_handler = hpmmap_get_user_pages_longterm_probe;
+
+        register_kprobe(&access_process_vm_probe);
+    }
+
+    /* handle_mm_fault */
+    {
+        memset(&handle_mm_fault_probe, 0, sizeof(struct kprobe));
+
+        handle_mm_fault_probe.symbol_name = "handle_mm_fault";
+        handle_mm_fault_probe.pre_handler = hpmmap_get_user_pages_longterm_probe;
+
+        register_kprobe(&handle_mm_fault_probe);
+    }
+
 
     PrintDebug("HPMMAP probes initialized\n");
 
@@ -465,6 +493,9 @@ deinit_hpmmap_probes(void)
     unregister_kprobe(&__get_user_pages_locked_probe);
     unregister_kprobe(&get_user_pages_unlocked_probe);
     unregister_kprobe(&get_user_pages_longterm_probe);
+
+    unregister_kprobe(&access_process_vm_probe);
+    unregister_kprobe(&handle_mm_fault_probe);
 
     PrintDebug("HPMMAP probes deinitialized\n");
     return 0;
