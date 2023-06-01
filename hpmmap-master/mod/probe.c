@@ -28,7 +28,7 @@ static struct kprobe    get_user_pages_unlocked_probe;
 static struct kprobe    get_user_pages_longterm_probe;
 
 static struct kprobe    access_process_vm_probe;
-static struct kprobe    handle_mm_fault_probe;
+static struct kprobe    get_user_pages_remote_probe;
 
 
 /* copy_process_probe private data */
@@ -545,14 +545,14 @@ init_hpmmap_probes(void)
         register_kprobe(&access_process_vm_probe);
     }
 
-    /* handle_mm_fault */
+    /* EXTRA DEBUG */
     {
-        memset(&handle_mm_fault_probe, 0, sizeof(struct kprobe));
+        memset(&get_user_pages_remote_probe, 0, sizeof(struct kprobe));
 
-        handle_mm_fault_probe.symbol_name = "handle_mm_fault";
-        handle_mm_fault_probe.pre_handler = hpmmap_handle_mm_fault_probe;
+        get_user_pages_remote_probe.symbol_name = "get_user_pages_remote";
+        get_user_pages_remote_probe.pre_handler = hpmmap_handle_mm_fault_probe;
 
-        register_kprobe(&handle_mm_fault_probe);
+        register_kprobe(&get_user_pages_remote_probe);
     }
 
 
@@ -577,7 +577,7 @@ deinit_hpmmap_probes(void)
     unregister_kprobe(&get_user_pages_longterm_probe);
 
     unregister_kprobe(&access_process_vm_probe);
-    unregister_kprobe(&handle_mm_fault_probe);
+    unregister_kprobe(&get_user_pages_remote_probe);
 
     PrintDebug("HPMMAP probes deinitialized\n");
     return 0;
