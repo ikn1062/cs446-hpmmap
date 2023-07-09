@@ -403,7 +403,7 @@ static int
 hpmmap_handle_mm_fault_probe(struct kprobe  * kp,
                                struct pt_regs * regs)
 {
-    PrintDebug("Handle MM Fault Probe");
+    PrintDebug("Get user pages remote");
     return 0;
 }
 
@@ -455,105 +455,105 @@ init_hpmmap_probes(void)
     }
 
 
-    /* get_user_pages */
-    {
-        memset(&get_user_pages_probe, 0, sizeof(struct kprobe));
+    // /* get_user_pages */
+    // {
+    //     memset(&get_user_pages_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_probe.symbol_name = "get_user_pages";
-        get_user_pages_probe.pre_handler = hpmmap_get_user_pages_probe;
+    //     get_user_pages_probe.symbol_name = "get_user_pages";
+    //     get_user_pages_probe.pre_handler = hpmmap_get_user_pages_probe;
 
-        register_kprobe(&get_user_pages_probe);
-    }
+    //     register_kprobe(&get_user_pages_probe);
+    // }
 
-    /* __get_user_pages */
-    {
-        memset(&__get_user_pages_probe, 0, sizeof(struct kprobe));
+    // /* __get_user_pages */
+    // {
+    //     memset(&__get_user_pages_probe, 0, sizeof(struct kprobe));
 
-        __get_user_pages_probe.symbol_name = "__get_user_pages";
-        __get_user_pages_probe.pre_handler = __hpmmap_get_user_pages_probe;
+    //     __get_user_pages_probe.symbol_name = "__get_user_pages";
+    //     __get_user_pages_probe.pre_handler = __hpmmap_get_user_pages_probe;
 
-        register_kprobe(&__get_user_pages_probe);
-    }
+    //     register_kprobe(&__get_user_pages_probe);
+    // }
 
-    /* get_user_pages_fast */
-    {
-        memset(&get_user_pages_fast_probe, 0, sizeof(struct kprobe));
+    // /* get_user_pages_fast */
+    // {
+    //     memset(&get_user_pages_fast_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_fast_probe.symbol_name = "get_user_pages_fast";
-        get_user_pages_fast_probe.pre_handler = hpmmap_get_user_pages_fast_probe;
+    //     get_user_pages_fast_probe.symbol_name = "get_user_pages_fast";
+    //     get_user_pages_fast_probe.pre_handler = hpmmap_get_user_pages_fast_probe;
 
-        register_kprobe(&get_user_pages_fast_probe);
-    }
+    //     register_kprobe(&get_user_pages_fast_probe);
+    // }
 
-    /* __get_user_pages_fast */
-    {
-        memset(&__get_user_pages_fast_probe, 0, sizeof(struct kprobe));
+    // /* __get_user_pages_fast */
+    // {
+    //     memset(&__get_user_pages_fast_probe, 0, sizeof(struct kprobe));
 
-        __get_user_pages_fast_probe.symbol_name = "__get_user_pages_fast";
-        __get_user_pages_fast_probe.pre_handler = __hpmmap_get_user_pages_fast_probe;
+    //     __get_user_pages_fast_probe.symbol_name = "__get_user_pages_fast";
+    //     __get_user_pages_fast_probe.pre_handler = __hpmmap_get_user_pages_fast_probe;
 
-        register_kprobe(&__get_user_pages_fast_probe);
-    }
+    //     register_kprobe(&__get_user_pages_fast_probe);
+    // }
 
-    /* get_user_pages_locked */
-    {
-        memset(&get_user_pages_locked_probe, 0, sizeof(struct kprobe));
+    // /* get_user_pages_locked */
+    // {
+    //     memset(&get_user_pages_locked_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_locked_probe.symbol_name = "get_user_pages_locked";
-        get_user_pages_locked_probe.pre_handler = hpmmap_get_user_pages_locked_probe;
+    //     get_user_pages_locked_probe.symbol_name = "get_user_pages_locked";
+    //     get_user_pages_locked_probe.pre_handler = hpmmap_get_user_pages_locked_probe;
 
-        register_kprobe(&get_user_pages_locked_probe);
-    }
+    //     register_kprobe(&get_user_pages_locked_probe);
+    // }
 
-    /* __get_user_pages_locked */
-    {
-        memset(&__get_user_pages_locked_probe, 0, sizeof(struct kprobe));
+    // /* __get_user_pages_locked */
+    // {
+    //     memset(&__get_user_pages_locked_probe, 0, sizeof(struct kprobe));
 
-        __get_user_pages_locked_probe.symbol_name = "__get_user_pages_locked";
-        __get_user_pages_locked_probe.pre_handler = __hpmmap_get_user_pages_locked_probe;
+    //     __get_user_pages_locked_probe.symbol_name = "__get_user_pages_locked";
+    //     __get_user_pages_locked_probe.pre_handler = __hpmmap_get_user_pages_locked_probe;
 
-        register_kprobe(&__get_user_pages_locked_probe);
-    }
+    //     register_kprobe(&__get_user_pages_locked_probe);
+    // }
 
-    /* get_user_pages_unlocked */
-    {
-        memset(&get_user_pages_unlocked_probe, 0, sizeof(struct kprobe));
+    // /* get_user_pages_unlocked */
+    // {
+    //     memset(&get_user_pages_unlocked_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_unlocked_probe.symbol_name = "get_user_pages_unlocked";
-        get_user_pages_unlocked_probe.pre_handler = hpmmap_get_user_pages_unlocked_probe;
+    //     get_user_pages_unlocked_probe.symbol_name = "get_user_pages_unlocked";
+    //     get_user_pages_unlocked_probe.pre_handler = hpmmap_get_user_pages_unlocked_probe;
 
-        register_kprobe(&get_user_pages_unlocked_probe);
-    }
+    //     register_kprobe(&get_user_pages_unlocked_probe);
+    // }
 
-    /* get_user_pages_longterm */
-    {
-        memset(&get_user_pages_longterm_probe, 0, sizeof(struct kprobe));
+    // /* get_user_pages_longterm */
+    // {
+    //     memset(&get_user_pages_longterm_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_longterm_probe.symbol_name = "get_user_pages_longterm";
-        get_user_pages_longterm_probe.pre_handler = hpmmap_get_user_pages_longterm_probe;
+    //     get_user_pages_longterm_probe.symbol_name = "get_user_pages_longterm";
+    //     get_user_pages_longterm_probe.pre_handler = hpmmap_get_user_pages_longterm_probe;
 
-        register_kprobe(&get_user_pages_longterm_probe);
-    }
+    //     register_kprobe(&get_user_pages_longterm_probe);
+    // }
 
-    /* access_process_vm */
-    {
-        memset(&access_process_vm_probe, 0, sizeof(struct kprobe));
+    // /* access_process_vm */
+    // {
+    //     memset(&access_process_vm_probe, 0, sizeof(struct kprobe));
 
-        access_process_vm_probe.symbol_name = "access_process_vm";
-        access_process_vm_probe.pre_handler = hpmmap_access_process_vm_probe;
+    //     access_process_vm_probe.symbol_name = "access_process_vm";
+    //     access_process_vm_probe.pre_handler = hpmmap_access_process_vm_probe;
 
-        register_kprobe(&access_process_vm_probe);
-    }
+    //     register_kprobe(&access_process_vm_probe);
+    // }
 
-    /* EXTRA DEBUG */
-    {
-        memset(&get_user_pages_remote_probe, 0, sizeof(struct kprobe));
+    // /* EXTRA DEBUG */
+    // {
+    //     memset(&get_user_pages_remote_probe, 0, sizeof(struct kprobe));
 
-        get_user_pages_remote_probe.symbol_name = "get_user_pages_remote";
-        get_user_pages_remote_probe.pre_handler = hpmmap_handle_mm_fault_probe;
+    //     get_user_pages_remote_probe.symbol_name = "get_user_pages_remote";
+    //     get_user_pages_remote_probe.pre_handler = hpmmap_handle_mm_fault_probe;
 
-        register_kprobe(&get_user_pages_remote_probe);
-    }
+    //     register_kprobe(&get_user_pages_remote_probe);
+    // }
 
 
     PrintDebug("HPMMAP probes initialized\n");
@@ -567,17 +567,17 @@ deinit_hpmmap_probes(void)
     unregister_kretprobe(&copy_process_probe);
     unregister_jprobe(&do_exit_probe);
 
-    unregister_kprobe(&get_user_pages_probe);
-    unregister_kprobe(&__get_user_pages_probe);
-    unregister_kprobe(&get_user_pages_fast_probe);
-    unregister_kprobe(&__get_user_pages_fast_probe);
-    unregister_kprobe(&get_user_pages_locked_probe);
-    unregister_kprobe(&__get_user_pages_locked_probe);
-    unregister_kprobe(&get_user_pages_unlocked_probe);
-    unregister_kprobe(&get_user_pages_longterm_probe);
+    // unregister_kprobe(&get_user_pages_probe);
+    // unregister_kprobe(&__get_user_pages_probe);
+    // unregister_kprobe(&get_user_pages_fast_probe);
+    // unregister_kprobe(&__get_user_pages_fast_probe);
+    // unregister_kprobe(&get_user_pages_locked_probe);
+    // unregister_kprobe(&__get_user_pages_locked_probe);
+    // unregister_kprobe(&get_user_pages_unlocked_probe);
+    // unregister_kprobe(&get_user_pages_longterm_probe);
 
-    unregister_kprobe(&access_process_vm_probe);
-    unregister_kprobe(&get_user_pages_remote_probe);
+    // unregister_kprobe(&access_process_vm_probe);
+    // unregister_kprobe(&get_user_pages_remote_probe);
 
     PrintDebug("HPMMAP probes deinitialized\n");
     return 0;

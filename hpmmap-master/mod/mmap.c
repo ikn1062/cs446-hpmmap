@@ -574,6 +574,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
      * user is seemingly grabbing meaningless address and mapping FIXEd there,
      * which is not something we can handle
      */
+    PrintDebug("Do HPMMAP Private", (void *)addr);
     if (addr) {
         virtual_region = find_vaddr_reg(addr, addr + len, mmap_state);
 
@@ -637,6 +638,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
     vaddr = (uintptr_t)virtual_region->start;
 
     /* Allocate memory */
+    PrintDebug("Do HPMMAP Private - mem_allocate", (void *)addr);
     ret = mem_allocate(state, allocated_region, page_size, &physical_region);
     if (ret != 0) {
         PrintError("mem_allocate failed!\n");
@@ -648,6 +650,7 @@ do_hpmmap_mmap_private(struct memory_state * state,
 
 out:
     /* Copy file into memory content */
+    PrintDebug("Do HPMMAP Private - kernel read", (void *)addr);
     if (!(flags & MAP_ANONYMOUS)) 
     {
         loff_t pos = pgoff << PAGE_SHIFT;
@@ -684,6 +687,8 @@ do_hpmmap_mmap_file(struct memory_state * state,
 {
     struct file * file      = NULL;
     unsigned long ret       = 0;
+    
+    PrintDebug("Do HPMMAP File", (void *)addr);
 
     file = fget(fd);
 
@@ -730,6 +735,8 @@ do_hpmmap_mmap_file(struct memory_state * state,
         /* Need to drop the lock temporarily, because the device mmap
          * might invoke get_user_pages leading to deadlock
          */
+        PrintDebug("Do HPMMAP File - mmap file into memory", (void *)addr);
+
         mutex_unlock(&(state->mutex));
         {
             error = file->f_op->mmap(file, &fake_vma);
@@ -754,6 +761,8 @@ do_hpmmap_mmap_anon(struct memory_state * state,
 {
     unsigned long ret = 0;
 
+    PrintDebug("Do HPMMAP ANON", (void *)addr);
+
 #if 0
     if (flags & MAP_SHARED) {
         ret = do_hpmmap_mmap_shared(state, file, addr, len, prot, fd, flags, pgoff);
@@ -772,6 +781,7 @@ do_hpmmap_mmap_anon(struct memory_state * state,
         default:
             break;
     }
+    PrintDebug("memset", (void *)addr);
 
     memset((void *)ret, 0, len);
     return ret;
