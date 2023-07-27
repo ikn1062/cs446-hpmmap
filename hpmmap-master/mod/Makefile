@@ -13,7 +13,7 @@ hpmmap-y := 	main.o \
 		util-hashtable.o \
 		hpmmap_syms.o 
 
-hpmmap-objs := smapreg.o $(hpmmap-y)
+hpmmap-objs := $(hpmmap-y)
 obj-m := hpmmap.o 
 
 

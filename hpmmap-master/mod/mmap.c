@@ -783,13 +783,11 @@ do_hpmmap_mmap_anon(struct memory_state * state,
     PrintDebug("memset", (void *)addr);
     asm("pushfq\n\t"
         "xorq $0x40000,(%rsp)\n\t"
-        "popfq\n\t"
-        "ret");
+        "popfq");
     memset((void *)ret, 0, len);
     asm("pushfq\n\t"
         "xorq $0x40000,(%rsp)\n\t"
-        "popfq\n\t"
-        "ret");
+        "popfq");
     return ret;
 }
 
