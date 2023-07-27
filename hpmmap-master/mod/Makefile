@@ -11,7 +11,8 @@ hpmmap-y := 	main.o \
 		override.o \
 		probe.o \
 		util-hashtable.o \
-		hpmmap_syms.o
+		hpmmap_syms.o \
+		smapreg.o
 
 hpmmap-objs := $(hpmmap-y)
 obj-m := hpmmap.o

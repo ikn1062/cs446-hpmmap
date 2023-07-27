@@ -17,6 +17,8 @@
 #include "override.h"
 #include "mm.h"
 
+extern void toggleSmap();
+
 
 #define HPMMAP_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_EXEC)
 
@@ -782,8 +784,9 @@ do_hpmmap_mmap_anon(struct memory_state * state,
             break;
     }
     PrintDebug("memset", (void *)addr);
-
+    toggleSmap();
     memset((void *)ret, 0, len);
+    toggleSmap();
     return ret;
 }
 
