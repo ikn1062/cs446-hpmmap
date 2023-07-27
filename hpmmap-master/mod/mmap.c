@@ -17,9 +17,6 @@
 #include "override.h"
 #include "mm.h"
 
-extern void toggleSmap(void);
-
-
 #define HPMMAP_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_EXEC)
 
 /* Prototype for original brk definition */ 
@@ -784,9 +781,15 @@ do_hpmmap_mmap_anon(struct memory_state * state,
             break;
     }
     PrintDebug("memset", (void *)addr);
-    toggleSmap();
+    asm("pushfq\n\t"
+        "xorq $0x40000,(%rsp)\n\t"
+        "popfq\n\t"
+        "ret");
     memset((void *)ret, 0, len);
-    toggleSmap();
+    asm("pushfq\n\t"
+        "xorq $0x40000,(%rsp)\n\t"
+        "popfq\n\t"
+        "ret");
     return ret;
 }
 
