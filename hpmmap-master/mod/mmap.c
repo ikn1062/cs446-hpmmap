@@ -17,7 +17,7 @@
 #include "override.h"
 #include "mm.h"
 
-extern void toggleSmap();
+extern void toggleSmap(void);
 
 
 #define HPMMAP_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_EXEC)

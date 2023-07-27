@@ -11,11 +11,10 @@ hpmmap-y := 	main.o \
 		override.o \
 		probe.o \
 		util-hashtable.o \
-		hpmmap_syms.o \
-		smapreg.o
+		hpmmap_syms.o 
 
-hpmmap-objs := $(hpmmap-y)
-obj-m := hpmmap.o
+hpmmap-objs := smapreg.o $(hpmmap-y)
+obj-m := hpmmap.o 
 
 
 all:
